@@ -1,0 +1,9 @@
+; $Id$
+name = Ubuntu-Planet
+description = Ubuntu Planet blog aggregator
+package = Community - optional
+version = 6.x
+core = 6.x
+
+
+
