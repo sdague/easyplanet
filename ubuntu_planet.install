@@ -1,0 +1,119 @@
+<?php
+// $Id$
+
+/**
+ * Implementation of hook_schema().
+ */
+
+function ubuntu_planet_schema() {
+  $schema['ubuntu_planet_feeds'] = array(    
+    'description' => t('The base table for planet.'),
+    'fields' => array(
+      'fid' => array(
+        'description' => t('The primary identifier for a ubuntu_planet_feeds table.'),  
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'uid' => array(        
+        'type' => 'int',
+        'unsigned' => 1,
+        'not null' => FALSE,
+      ),
+      'title' => array(        
+        'type' => 'varchar',
+        'length' => 50,
+        'not null' => TRUE,
+      ),
+      'link' => array(        
+        'type' => 'varchar',
+        'length' => 80,
+        'not null' => TRUE,
+      ),
+      'image' => array(
+        'type' => 'varchar',
+        'length' => 120,
+        'not null' => FALSE,
+      ),
+      'checked' => array(        
+        'type' => 'int',
+        'not null' => FALSE,
+      ),
+      'frozen' => array(        
+        'type' => 'int',        
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+    ),
+    'primary key' => array('fid'),
+  );
+
+  $schema['ubuntu_planet_items'] = array(
+    'description' => t('contain feed id and its corresponding nid'),
+    'fields' => array(
+      'id' => array(
+        'description' => t('The primary identifier for a ubuntu_planet_items table'),
+        'type' => 'serial',
+        'unsigned' => 1,
+        'not null' => TRUE,
+      ),
+      'fid' => array(
+        'type' => 'int',
+        'unsigned' => 1,
+        'not null' => FALSE,
+      ),
+      'nid' => array(
+        'type' => 'int',
+        'unsigned' => 1,
+        'not null' => FALSE,
+      ),
+      'guid' => array(
+        'type' => 'varchar',
+        'length' => 120,
+        'not null' => FALSE,
+      ),
+      'link' => array(
+        'type' => 'varchar',
+        'length' => 180,
+        'not null' => FALSE,
+      ),
+      'created' => array(        
+        'type' => 'int',
+        'not null' => FALSE,
+      ),
+    ),
+    'primary key' => array('id'),
+  );
+
+  return $schema;
+}
+
+/**
+ * Implementation of hook_install()
+ *
+ * This will install the tables  MySQL.
+ * else add tables by hand.
+ */
+
+function ubuntu_planet_install() {
+  // Create tables.
+  drupal_install_schema('ubuntu_planet');
+}
+
+/**
+ * Implementation of hook_uninstall()
+ *
+ * This will automatically uninstall the database tables for the planet module for MySQL.
+ * 
+ *  
+ */
+
+function ubuntu_planet_uninstall() {
+  variable_del('ubuntu_planet_redirect_page');
+  variable_del('ubuntu_planet_filter_formats');
+  variable_del('ubuntu_planet_author_roles');
+  cache_clear_all('ubuntu_planet:', 'cache', true); 
+  drupal_uninstall_schema('ubuntu_planet');
+  db_query("DELETE FROM {node} WHERE type = '%s'", ubuntu_planet);
+  
+}
