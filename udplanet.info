@@ -1,0 +1,8 @@
+name = "UD Planet"
+description = "Mimics PlanetPlanet whish hosts planet.ubuntu.com."
+core = "6.x"
+version = "6.x"
+project = "udplanet"
+package = "Ubuntu Drupal"
+
+dependencies[] = aggregator
