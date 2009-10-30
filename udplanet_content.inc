@@ -1,4 +1,5 @@
 <?php
+// $Id$
 
 /**
  * @file Generate any display content
