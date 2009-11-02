@@ -2,7 +2,8 @@
 // $Id$
 
 /**
- * @file General Planet Settings
+ * @file
+ * General Planet Settings
  */
 
 /**

@@ -2,7 +2,12 @@
 // $Id$
 
 /**
- * Implementation of hook_install()
+ * @file
+ * Install processes for the planet module
+ */
+
+/**
+ * Implementation of hook_install().
  */
 
 function udplanet_install() {
@@ -11,11 +16,11 @@ function udplanet_install() {
 }
 
 /**
- * Implementation of hook_uninstall()
+ * Implementation of hook_uninstall().
  *
  * This will automatically uninstall the database tables for the planet module for MySQL.
- * 
- *  
+ *
+ *
  */
 
 function udplanet_uninstall() {
@@ -34,7 +39,7 @@ function udplanet_uninstall() {
  */
 
 function udplanet_schema() {
-  $schema['udplanet_feeds'] = array(    
+  $schema['udplanet_feeds'] = array(
     'description' => t('Table for UD Planet.'),
     'fields' => array(
       'lid' => array(

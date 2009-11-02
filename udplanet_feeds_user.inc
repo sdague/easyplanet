@@ -2,7 +2,8 @@
 // $Id$
 
 /**
- * @file User Menu functions
+ * @file
+ * User Menu functions
  */
 
 /**
@@ -19,7 +20,8 @@ function udplanet_feeds_user() {
   if (intval($lid) > 0) {
     $edit = db_fetch_array(db_query('SELECT * FROM {udplanet_feeds} WHERE lid = %d AND uid="%s"', intval($lid), $userid));
     $output .= drupal_get_form('udplanet_feeds_user_edit', $edit, 'true', $userid);
-  } else {    
+  }
+  else {
     $output .= drupal_get_form('udplanet_feeds_user_edit', $edit, 'false', $userid);
     $output .= '<h2>User Feeds</h2>';
     $output .= udplanet_feeds_user_list($userid);
@@ -38,7 +40,8 @@ function udplanet_feeds_user_list($userid) {
 
   if (variable_get('udplanet_user_edit', TRUE)) {
     $headers = array('Feed Title', 'Disabled', 'Frozen', 'Edit');
-  } else {
+  }
+  else {
     $headers = array('Feed Title', 'Disabled', 'Frozen');
   }
 
@@ -46,11 +49,12 @@ function udplanet_feeds_user_list($userid) {
     $lid = strval($feed->lid);
     $disabled = ($feed->disabled == TRUE) ? 'X' : '';
     $frozen = ($feed->frozen == TRUE) ? 'X' : '';
-    $edit = l('edit', 'user/' . $userid . '/udplanet/feeds/'. $lid);
-    $aggregator = db_fetch_object(db_query('SELECT title FROM {aggregator_feed} WHERE fid="%d" LIMIT 1', $feed->fid));
+    $edit = l(t('edit'), 'user/' . $userid . '/udplanet/feeds/'. $lid);
+    $aggregator = db_fetch_object(db_query_range('SELECT title FROM {aggregator_feed} WHERE fid="%d"', array($feed->fid), 0, 1));
     if (variable_get('udplanet_user_edit', TRUE)) {
       array_push($rows, array($aggregator->title, $disabled, $frozen, $edit));
-    } else {
+    }
+    else {
       array_push($rows, array($aggregator->title, $disabled, $frozen));
     }
   }
@@ -61,11 +65,11 @@ function udplanet_feeds_user_list($userid) {
 /**
  * Add/Delete/Update Feeds
  */
-function udplanet_feeds_user_edit(&$form_state, $edit = array(), $individual = false) {
+function udplanet_feeds_user_edit(&$form_state, $edit = array(), $individual = FALSE) {
   // Check permissions from Settings
   if (!variable_get('udplanet_user_edit', TRUE) && !variable_get('udplanet_user_add', TRUE)) return NULL;
 
-  $aggregator = db_fetch_object(db_query('SELECT title, url FROM {aggregator_feed} WHERE fid="%d" LIMIT 1', $edit['fid']));
+  $aggregator = db_fetch_object(db_query_range('SELECT title, url FROM {aggregator_feed} WHERE fid="%d"', array($edit['fid']), 0, 1));
   $feed_title = $aggregator->title;
   $feed_url = $aggregator->url;
 
@@ -106,7 +110,8 @@ function udplanet_feeds_user_edit(&$form_state, $edit = array(), $individual = f
       '#type' => 'submit',
       '#value' => 'Add',
     );
-  } elseif (variable_get('udplanet_user_edit', TRUE) && $edit['lid'] > 0) {
+  }
+  elseif (variable_get('udplanet_user_edit', TRUE) && $edit['lid'] > 0) {
     $form['feed']['submit'] = array(
       '#type' => 'submit',
       '#value' => 'Update',
@@ -135,7 +140,7 @@ function udplanet_feeds_user_edit_submit($form, &$form_state) {
   $feed_title = $form_state['clicked_button']['#post']['feed_title'];
   $uid = $user->uid;
   $disabled = $form_state['clicked_button']['#post']['disabled'];
-  $feed = db_fetch_object(db_query('SELECT fid FROM {udplanet_feeds} WHERE lid="%d" AND uid="%s" LIMIT 1', $lid, $uid));
+  $feed = db_fetch_object(db_query_range('SELECT fid FROM {udplanet_feeds} WHERE lid="%d" AND uid="%s"', array($lid, $uid), 0, 1));
   $fid = $feed->fid;
 
   // Check Valid URL

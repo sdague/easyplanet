@@ -2,7 +2,8 @@
 // $Id$
 
 /**
- * @file Generate any display content
+ * @file
+ * Generate any display content
  */
 
 /**
@@ -16,9 +17,9 @@ function udplanet_page_content() {
   $feeds = udplanet_get_items();
 
   // Generate themed planet content
-  foreach($feeds as $feed) {
+  foreach ($feeds as $feed) {
     $planet .= udplanet_content_heading($feed['time'], $lastday);
-    $planet .= theme('page_udplanet', $feed['title'], $feed['url'], $feed['heading'], $feed['link'], $feed['content'], $feed['time'], $feed['picture']);
+    $planet .= theme('page_udplanet', $feed['title'], $feed['url'], $feed['heading'], $feed['link'], $feed['content'], $feed['time'], $feed['uid']);
   }
 
   // Make sure we return a meaningful message if no content exists
@@ -36,7 +37,7 @@ function udplanet_get_items() {
   $items_limit = variable_get('udplanet_feed_items', 40);
 
   $items = db_query('SELECT
-                     users.picture AS picture,
+                     users.uid AS uid,
                      aggregator_feed.title AS title,
                      aggregator_feed.url AS url,
                      aggregator_item.title AS heading,
@@ -47,8 +48,8 @@ function udplanet_get_items() {
                      LEFT JOIN users ON udplanet_feeds.uid = users.uid
                      LEFT JOIN aggregator_feed ON udplanet_feeds.fid = aggregator_feed.fid
                      LEFT JOIN aggregator_item ON aggregator_feed.fid = aggregator_item.fid
-                     WHERE udplanet_feeds.disabled IS FALSE
-                     AND udplanet_feeds.frozen IS FALSE
+                     WHERE udplanet_feeds.disabled IS NOT TRUE
+                     AND udplanet_feeds.frozen IS NOT TRUE
                      LIMIT %d', $items_limit);
 
   $feeds = array();
@@ -61,7 +62,7 @@ function udplanet_get_items() {
       'link' => $item->link,
       'content' => $item->content,
       'time' => $item->time,
-      'picture' => $item->picture,
+      'uid' => $item->uid,
     );
   }
 
@@ -72,11 +73,11 @@ function udplanet_get_items() {
  * Function to manage chang in heading
  */
 function udplanet_content_heading($time, &$day_last) {
- $day_this = format_date($time, 'custom', 'F d, Y');
- if ($day_last != $day_this) {
-   $day_last = $day_this;
-   $output = theme('heading_udplanet', $day_this);
- }
+  $day_this = format_date($time, 'custom', 'F d, Y');
+  if ($day_last != $day_this) {
+    $day_last = $day_this;
+    $output = theme('heading_udplanet', $day_this);
+  }
 
   return $output;
 }
@@ -108,14 +109,16 @@ function udplanet_theme() {
 /**
  * Custom theme function: page output
  */
-function theme_page_udplanet($title, $url, $heading, $link, $content, $time, $picture) {
+function theme_page_udplanet($title, $url, $heading, $link, $content, $time, $uid) {
   $timestamp = format_date($time, 'custom', 'F d, Y g:i A');
+  $picture = theme('user_picture', user_load($uid));
 
   $output  = '';
   $output .= '<div class="udp-entry">';
   $output .= '  <div class="udp-person-info">';
   $output .= '    <a href="' . $url . '">';
-  $output .= '      <img class="udp-face" src="' . $picture . '" />';
+  //$output .= '      <img class="udp-face" src="' . $picture . '" />';
+  $output .= '      ' . $picture;
   $output .= '      <br />' . $title;
   $output .= '    </a>';
   $output .= '  </div>';

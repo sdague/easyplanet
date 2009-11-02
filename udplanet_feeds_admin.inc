@@ -2,7 +2,8 @@
 // $Id$
 
 /**
- * @file Adminsitrative Menu functions
+ * @file
+ * Adminsitrative Menu functions
  */
 
 /**
@@ -14,7 +15,8 @@ function udplanet_feeds_admin() {
   if (intval($lid) > 0) {
     $edit = db_fetch_array(db_query('SELECT * FROM {udplanet_feeds} WHERE lid = %d', intval($lid)));
     $output .= drupal_get_form('udplanet_feeds_admin_edit', $edit, 'true');
-  } else {    
+  }
+  else {
     $output .= drupal_get_form('udplanet_feeds_admin_edit', $edit, 'false');
     $output .= '<h2>User Feeds</h2>';
     $output .= udplanet_feeds_admin_list();
@@ -44,8 +46,8 @@ function udplanet_feeds_admin_list() {
     $username = $users[$feed->uid];
     $disabled = ($feed->disabled == TRUE) ? 'X' : '';
     $frozen = ($feed->frozen == TRUE) ? 'X' : '';
-    $edit = l('edit', 'admin/settings/udplanet/feeds/'. $lid);
-    $aggregator = db_fetch_object(db_query('SELECT title FROM {aggregator_feed} WHERE fid="%d" LIMIT 1', $feed->fid));
+    $edit = l(t('edit'), 'admin/settings/udplanet/feeds/'. $lid);
+    $aggregator = db_fetch_object(db_query_range('SELECT title FROM {aggregator_feed} WHERE fid="%d"', array($feed->fid), 0, 1));
     array_push($rows, array($username, $aggregator->title, $disabled, $frozen, $edit));
   }
 
@@ -55,14 +57,14 @@ function udplanet_feeds_admin_list() {
 /**
  * Add/Delete/Update Feeds
  */
-function udplanet_feeds_admin_edit(&$form_state, $edit = array(), $individual = false) {
+function udplanet_feeds_admin_edit(&$form_state, $edit = array(), $individual = FALSE) {
   //Get list of available users
   $users_array = db_query('SELECT uid, name FROM {users} WHERE uid > 0');
   while ($user_array = db_fetch_object($users_array)) {
     $users[$user_array->uid] = $user_array->name;
   }
 
-  $aggregator = db_fetch_object(db_query('SELECT title, url FROM {aggregator_feed} WHERE fid="%d" LIMIT 1', $edit['fid']));
+  $aggregator = db_fetch_object(db_query('SELECT title, url FROM {aggregator_feed} WHERE fid="%d"', array($edit['fid']), 0, 1));
   $feed_title = $aggregator->title;
   $feed_url = $aggregator->url;
 
@@ -138,7 +140,7 @@ function udplanet_feeds_admin_edit_submit($form, &$form_state, $userid = NULL) {
   $uid = $form_state['clicked_button']['#post']['uid'];
   $disabled = $form_state['clicked_button']['#post']['disabled'];
   $frozen = $form_state['clicked_button']['#post']['frozen'];
-  $feed = db_fetch_object(db_query('SELECT fid FROM {udplanet_feeds} WHERE lid="%d" LIMIT 1', $lid));
+  $feed = db_fetch_object(db_query_range('SELECT fid FROM {udplanet_feeds} WHERE lid="%d"', array($lid), 0, 1));
   $fid = $feed->fid;
 
   // Check Valid URL
