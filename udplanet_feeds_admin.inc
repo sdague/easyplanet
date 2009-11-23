@@ -14,10 +14,10 @@ function udplanet_feeds_admin() {
 
   if (intval($lid) > 0) {
     $edit = db_fetch_array(db_query('SELECT * FROM {udplanet_feeds} WHERE lid = %d', intval($lid)));
-    $output .= drupal_get_form('udplanet_feeds_admin_edit', $edit, 'true');
+    $output .= drupal_get_form('udplanet_feeds_admin_edit', $edit, TRUE);
   }
   else {
-    $output .= drupal_get_form('udplanet_feeds_admin_edit', $edit, 'false');
+    $output .= drupal_get_form('udplanet_feeds_admin_edit', $edit, FALSE);
     $output .= '<h2>User Feeds</h2>';
     $output .= udplanet_feeds_admin_list();
   }
@@ -58,12 +58,13 @@ function udplanet_feeds_admin_list() {
  * Add/Delete/Update Feeds
  */
 function udplanet_feeds_admin_edit(&$form_state, $edit = array(), $individual = FALSE) {
-  //Get list of available users
-  $users_array = db_query('SELECT uid, name FROM {users} WHERE uid > 0');
-  while ($user_array = db_fetch_object($users_array)) {
-    $users[$user_array->uid] = $user_array->name;
+  if ($individual) {
+    $user = db_fetch_object(db_query('SELECT name
+                                      FROM {udplanet_feeds}
+                                      LEFT JOIN {users} ON udplanet_feeds.uid = users.uid
+                                      WHERE lid = "%s"', $edit['lid']));
+    $username = $user->name;
   }
-
   $aggregator = db_fetch_object(db_query('SELECT title, url FROM {aggregator_feed} WHERE fid="%d"', array($edit['fid']), 0, 1));
   $feed_title = $aggregator->title;
   $feed_url = $aggregator->url;
@@ -74,19 +75,19 @@ function udplanet_feeds_admin_edit(&$form_state, $edit = array(), $individual = 
     '#type' => 'fieldset',
     '#title' => t('Feed'),
     '#collapsible' => TRUE,
-    '#collapsed' => $edit['lid'] > 0 ? FALSE : TRUE,
+    '#collapsed' => !$individual,
     '#tree' => FALSE,
   );
   $form['feed']['lid'] = array(
     '#type' => 'hidden',
     '#value' => $edit['lid'],
   );
-  $form['feed']['uid'] = array(
-    '#type' => 'select',
+  $form['feed']['username'] = array(
+    '#type' => 'textfield',
     '#title' => t('User'),
-    '#options' => $users,
-    '#default_value' => $edit['uid'],
+    '#default_value' => $username,
     '#description' => t('User the blog will belong to.'),
+    '#autocomplete_path' => 'user/autocomplete',
   );
   $form['feed']['feed_title'] = array(
     '#type' => 'textfield',
@@ -98,6 +99,7 @@ function udplanet_feeds_admin_edit(&$form_state, $edit = array(), $individual = 
     '#type' => 'textfield',
     '#title' => t('Feed URL'),
     '#default_value' => $feed_url,
+    '#maxlength' => 255,
     '#description' => t('The URL of the feed to be aggregated.'),
   );
   $form['feed']['disabled'] = array(
@@ -115,7 +117,7 @@ function udplanet_feeds_admin_edit(&$form_state, $edit = array(), $individual = 
 
   $form['feed']['submit'] = array(
     '#type' => 'submit',
-    '#value' => $edit['lid'] > 0 ? 'Update' : 'Add'
+    '#value' => $individual ? 'Update' : 'Add'
   );
 
   if ($edit['lid'] > 0) {
@@ -137,11 +139,19 @@ function udplanet_feeds_admin_edit_submit($form, &$form_state, $userid = NULL) {
   $lid = $form_state['clicked_button']['#post']['lid'];
   $feed_url = $form_state['clicked_button']['#post']['feed_url'];
   $feed_title = $form_state['clicked_button']['#post']['feed_title'];
-  $uid = $form_state['clicked_button']['#post']['uid'];
+  $username = $form_state['clicked_button']['#post']['username'];
   $disabled = $form_state['clicked_button']['#post']['disabled'];
   $frozen = $form_state['clicked_button']['#post']['frozen'];
   $feed = db_fetch_object(db_query_range('SELECT fid FROM {udplanet_feeds} WHERE lid="%d"', array($lid), 0, 1));
   $fid = $feed->fid;
+
+  // Get uid from  username
+  $user = db_fetch_object(db_query('SELECT uid FROM {users} WHERE name="%s"', $username));
+  $uid = $user->uid;
+  if (!isset($uid)) {
+    form_set_error('user_404', t('Unknown user %username.', array('%username' => $username)));
+    return NULL;
+  }
 
   // Check Valid URL
   if (!valid_url($feed_url, TRUE)) {
@@ -174,4 +184,14 @@ function udplanet_feeds_admin_edit_submit($form, &$form_state, $userid = NULL) {
     $fid = db_last_insert_id('aggregator_feed', 'fid');
     db_query('INSERT INTO {udplanet_feeds} (uid, fid, disabled, frozen) VALUES ("%s", "%s", "%s", "%s")', $uid, $fid, $disabled, $frozen);
   }
+
+  // Pull feed content if option is enabled
+  if ($op != 'Delete') {
+    if (variable_get('udplanet_cron_edit', 0)) {
+      module_load_include('module', 'aggregator', 'aggregator');
+      $feed = db_fetch_array(db_query("SELECT * FROM {aggregator_feed} WHERE fid=%d", $fid));
+      aggregator_refresh($feed);
+    }
+  }
+
 }

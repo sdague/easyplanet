@@ -99,12 +99,38 @@ function udplanet_menu() {
     'page callback' => 'udplanet_page_content',
     'access arguments' => array('view udplanet'),
     'file' => 'udplanet_content.inc',
-    'type' => MENU_CALLBACK
+    'type' => MENU_CALLBACK,
+  );
+  $items['planet/rss'] = array(
+    'title' => NULL,
+    'page callback' => 'udplanet_page_rss',
+    'access arguments' => array('view udplanet'),
+    'file' => 'udplanet_content.inc',
+    'type' => MENU_CALLBACK,
   );
 
   return $items;
 }
 
+/**
+ * Implementation of hook_block().
+ */
+function udplanet_block($op = 'list', $delta = 0, $edit = array()) {
+  module_load_include('inc', 'udplanet', 'udplanet_content');
+  if ($op == "list") {
+    $block[0]["info"] = t('Planet Sidebar');
+  }
+  elseif ($op == 'view') {
+    $block['subject'] = 'Solar System';
+    $block['content'] = udplanet_block_content();
+  }
+  return $block;
+}
+
+/**
+ * Universal Check
+ * Check for duplicate issues before adding any feeds
+ */
 function udplanet_check_dupes($feed_url, $feed_title, $fid) {
   $dupe = array(
     'detected' => FALSE,
@@ -141,6 +167,7 @@ function udplanet_check_dupes($feed_url, $feed_title, $fid) {
 }
 
 /**
+ * Universal Check
  * Function to limit number of added feeds
  */
 function udplanet_check_limit($uid, $op) {
@@ -177,33 +204,24 @@ function udplanet_check_limit($uid, $op) {
 }
 
 /**
+ * Implementation of hook_menu_alter().
+ *
  * This function alters the aggregator module for because the module relies on the settings here very heavily.
  */
 function udplanet_menu_alter(&$callbacks) {
+//echo '<pre>' . print_r($callbacks, true) . '</pre>'; die();
   // Not catching everything | If they are this determined, they can break things in the database
   $callbacks['admin/content/aggregator']['title'] = NULL;
+  $callbacks['admin/content/aggregator']['description'] = NULL;
   $callbacks['admin/content/aggregator']['page callback'] = 'udplanet_aggregator_override';
-  $callbacks['admin/content/aggregator/add/feed']['page callback'] = 'udplanet_aggregator_override';
-  $callbacks['admin/content/aggregator/add/feed']['page callback'] = 'udplanet_aggregator_override';
-  $callbacks['admin/content/aggregator/remove/%aggregator_feed']['page callback'] = 'udplanet_aggregator_override';
-  $callbacks['admin/content/aggregator/update/%aggregator_feed']['page callback'] = 'udplanet_aggregator_override';
-  $callbacks['admin/content/aggregator/settings']['page callback'] = 'udplanet_aggregator_override';
-  $callbacks['aggregator']['page callback'] = 'udplanet_aggregator_override';
-  $callbacks['aggregator'] = NULL;
-  $callbacks['aggregator/sources/%aggregator_feed']['page callback'] = 'udplanet_aggregator_override';
-  $callbacks['aggregator/sources/%aggregator_feed/configure']['page callback'] = 'udplanet_aggregator_override';
-  $callbacks['admin/content/aggregator/edit/feed/%aggregator_feed']['page callback'] = 'udplanet_aggregator_override';
   $callbacks['admin/help/aggregator']['page callback'] = 'udplanet_aggregator_override';
-  $callbacks['node/add/feed']['page callback'] = 'udplanet_aggregator_override';
-  $callbacks['node/add/feed-item']['page callback'] = 'udplanet_aggregator_override';
-  $callbacks['admin/content/node-type/feed']['page callback'] = 'udplanet_aggregator_override';
-  $callbacks['admin/content/node-type/feed-item']['page callback'] = 'udplanet_aggregator_override';
-  $callbacks['admin/content/node-type/feed/delete']['page callback'] = 'udplanet_aggregator_override';
-  $callbacks['admin/content/node-type/feed/edit']['page callback'] = 'udplanet_aggregator_override';
+  $callbacks['aggregator/sources'] = NULL;
+  $callbacks['aggregator'] = NULL;
 }
 
 /**
  * This function explains why they can not access the altered menus
+ * This is used directly by the above function
  */
 function udplanet_aggregator_override() {
   return t('<h2>Access Disabled</h2>'
@@ -213,6 +231,7 @@ function udplanet_aggregator_override() {
 }
 
 /**
+ * Implementation of hook_user().
  * This function implements hooks to ensure that user alterations do not affect the feeds
  */
 function udplanet_user($op, &$edit, &$account, $category = NULL) {
@@ -230,3 +249,51 @@ function udplanet_user($op, &$edit, &$account, $category = NULL) {
       break;
   }
 }
+
+/**
+ * Implementation of hook_theme().
+ */
+function udplanet_theme() {
+  return array(
+    // Theme page content
+    'page_udplanet' => array(
+      'arguments' => array(
+        'title' => NULL,
+        'url' => NULL,
+        'heading' => NULL,
+        'link' => NULL,
+        'content' => NULL,
+        'time' => NULL,
+        'picture' => NULL,
+      ),
+      'file' => 'udplanet_theme.inc',
+    ),
+    // Theme block header
+    'sidebar_udplanet_header' => array(
+      'arguements' => array(
+        'header' => NULL,
+      ),
+      'file' => 'udplanet_theme.inc',
+    ),
+    // Theme block feeds open
+    'sidebar_udplanet_feeds_open' => array(
+      'arguments' => array(),
+      'file' => 'udplanet_theme.inc',
+    ),
+    // Theme block feeds list
+    'sidebar_udplanet_feeds_list' => array(
+      'arguements' => array(
+        'title' => NULL,
+        'feed' => NULL,
+        'link' => NULL,
+      ),
+      'file' => 'udplanet_theme.inc',
+    ),
+    // Theme block feeds close
+    'sidebar_udplanet_feeds_close' => array(
+      'arguments' => array(),
+      'file' => 'udplanet_theme.inc',
+    ),
+  );
+}
+

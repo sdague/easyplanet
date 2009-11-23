@@ -124,3 +124,45 @@ h2.udp-date {
   border-bottom: medium none;
   text-shadow: 0.2em 0.2em 3px #999999;
 }
+
+#udp-rightColumns {
+  padding-bottom: 1em;
+  padding-top: 3em;
+  margin: 0 -18em 0 1px;
+}
+
+.udp-inside {
+  font-size: 100%;
+  padding: 0 1.5em;
+}
+
+#udp-rightColumn h3, #udp-rightColumn h3 a {
+  color: #6D4C07;
+  font-weight: bold;
+  text-decoration: none;
+  border-bottom: 2px solid #6D4C07;
+  font-size: 130%;
+  margin-top: 20px;
+  text-shadow: 0.2em 0.2em 3px #999999;
+}
+
+#udp-rightColumn ul {
+  color: #696969;
+  list-style-image: none;
+  list-style-position: outside;
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+#udp-rightColumn li {
+  margin-bottom: 0;
+  list-style-image: none;
+}
+
+#udp-rightColumn li a {
+  color: black;
+  font-weight: bold;
+  text-decoration: none;
+  background-color: none;
+}

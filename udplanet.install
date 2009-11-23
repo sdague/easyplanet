@@ -26,9 +26,14 @@ function udplanet_install() {
 function udplanet_uninstall() {
   // Delete variables
   variable_del('udplanet_feed_items');
+  variable_del('notice_1');
+  variable_del('udplanet_block_header');
+  variable_del('udplanet_block_feeds');
+  variable_del('udplanet_block_footer');
   variable_del('udplanet_user_max');
   variable_del('udplanet_user_add');
   variable_del('udplanet_user_edit');
+  variable_del('notice_2');
 
   // Delete Table
   drupal_uninstall_schema('udplanet');
