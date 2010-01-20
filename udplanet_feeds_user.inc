@@ -174,7 +174,7 @@ function udplanet_feeds_user_edit_submit($form, &$form_state) {
     $fid = db_last_insert_id('aggregator_feed', 'fid');
     db_query('INSERT INTO {udplanet_feeds} (uid, fid, disabled) VALUES ("%s", "%s", "%s")', $uid, $fid, $disabled);
   }
-    
+
   // Pull feed content if option is enabled
   if ($op != 'Delete') {
     if (variable_get('udplanet_cron_edit', 0)) {

@@ -205,18 +205,18 @@ function udplanet_check_limit($uid, $op) {
 
 /**
  * Implementation of hook_menu_alter().
- *
  * This function alters the aggregator module for because the module relies on the settings here very heavily.
  */
 function udplanet_menu_alter(&$callbacks) {
-//echo '<pre>' . print_r($callbacks, true) . '</pre>'; die();
-  // Not catching everything | If they are this determined, they can break things in the database
-  $callbacks['admin/content/aggregator']['title'] = NULL;
-  $callbacks['admin/content/aggregator']['description'] = NULL;
-  $callbacks['admin/content/aggregator']['page callback'] = 'udplanet_aggregator_override';
-  $callbacks['admin/help/aggregator']['page callback'] = 'udplanet_aggregator_override';
-  $callbacks['aggregator/sources'] = NULL;
-  $callbacks['aggregator'] = NULL;
+  if (variable_get('udplanet_safety_enabled', TRUE)) {
+    // Not catching everything | If they are this determined, they can break things in the database
+    $callbacks['admin/content/aggregator']['title'] = NULL;
+    $callbacks['admin/content/aggregator']['description'] = NULL;
+    $callbacks['admin/content/aggregator']['page callback'] = 'udplanet_aggregator_override';
+    $callbacks['admin/help/aggregator']['page callback'] = 'udplanet_aggregator_override';
+    $callbacks['aggregator/sources'] = NULL;
+    $callbacks['aggregator'] = NULL;
+  }
 }
 
 /**

@@ -89,6 +89,30 @@ function udplanet_admin_settings() {
     '#description' => t('Allow the user to edit edit their own feeds.'),
     '#required' => TRUE,
   );
+  $form['safety'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Safety Settings'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#tree' => FALSE,
+  );
+  $form['safety']['notice_3'] = array(
+    '#type' => 'textarea',
+    '#title' => l(t('Click here to be navigated to /admin/user/settings'), 'admin/user/settings'),
+    '#default_value' => t('The Planet module relies very heavily on the Aggregator module. For this reason, '
+                        . 'the default action is to disable access to the aggregator settings. If you need '
+                        . 'to access these settings you can disable this safety setting. However, do not  '
+                        . 'expect any support if things break. Note: you will need to flush cache for this '
+                        . 'change to take effect.'),
+    '#disabled' => TRUE,
+  );
+  $form['safety']['udplanet_safety_enabled'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Enable Safety Features'),
+    '#default_value' => variable_get('udplanet_safety_enabled', TRUE),
+    '#description' => t('Enable safety features to prevent issues.'),
+    '#required' => TRUE,
+  );
   $form['pictures'] = array(
     '#type' => 'fieldset',
     '#title' => t('User Pictures'),
