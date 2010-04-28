@@ -37,7 +37,7 @@ function udplanet_page_rss() {
   $feeds = udplanet_get_items();
 
   foreach ($feeds as $feed) {
-    $items .= format_rss_item($feed['title'], $feed['link'], $feed['content'], array('pubDate' => date('r', $feed['time'])));
+    $items .= udplanet_format_rss_item($feed['heading'], $feed['link'], $feed['content'], $feed['title'], array('pubDate' => date('r', $feed['time'])));
   }
 
   $url = url('planet/rss', array('absolute' => TRUE));
@@ -66,6 +66,19 @@ function udplanet_page_rss() {
   print $output;
 }
 
+function udplanet_format_rss_item($title, $link, $description, $author, $args = array()) {
+  $output = "<item>\n";
+  $output .= ' <title>'. check_plain($title) ."</title>\n";
+  $output .= ' <link>'. check_url($link) ."</link>\n";
+  $output .= ' <description>'. check_plain($description) ."</description>\n";
+  $output .= ' <author>'. check_plain($author) ."</author>\n";
+  $output .= format_xml_elements($args);
+  $output .= "</item>\n";
+
+  return $output;
+}
+
+
 /**
  * Function to pull the planet data from the database
  */
@@ -73,20 +86,20 @@ function udplanet_get_items() {
   $items_limit = variable_get('udplanet_feed_items', 40);
 
   $items = db_query('SELECT
-                     users.uid AS uid,
-                     aggregator_feed.title AS title,
-                     aggregator_feed.url AS url,
-                     aggregator_item.title AS heading,
-                     aggregator_item.link AS link,
-                     aggregator_item.description AS content,
-                     aggregator_item.timestamp AS time
-                     FROM udplanet_feeds
-                     LEFT JOIN users ON udplanet_feeds.uid = users.uid
-                     LEFT JOIN aggregator_feed ON udplanet_feeds.fid = aggregator_feed.fid
-                     LEFT JOIN aggregator_item ON aggregator_feed.fid = aggregator_item.fid
-                     WHERE udplanet_feeds.disabled IS NOT TRUE
-                     AND udplanet_feeds.frozen IS NOT TRUE
-                     AND aggregator_item.timestamp IS NOT NULL
+                     {users}.uid AS uid,
+                     {aggregator_feed}.title AS title,
+                     {aggregator_feed}.url AS url,
+                     {aggregator_item}.title AS heading,
+                     {aggregator_item}.link AS link,
+                     {aggregator_item}.description AS content,
+                     {aggregator_item}.timestamp AS time
+                     FROM {udplanet_feeds}
+                     LEFT JOIN {users} ON {udplanet_feeds}.uid = {users}.uid
+                     LEFT JOIN {aggregator_feed} ON {udplanet_feeds}.fid = {aggregator_feed}.fid
+                     LEFT JOIN {aggregator_item} ON {aggregator_feed}.fid = {aggregator_item}.fid
+                     WHERE {udplanet_feeds}.disabled IS NOT TRUE
+                     AND {udplanet_feeds}.frozen IS NOT TRUE
+                     AND {aggregator_item}.timestamp IS NOT NULL
                      ORDER BY time DESC
                      LIMIT %d', $items_limit);
 
