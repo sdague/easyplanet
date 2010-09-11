@@ -7,12 +7,27 @@
  */
 
 /**
+ * Page Title
+ */
+function udplanet_page_title()
+{
+  $page_title = variable_get('udplanet_page_title', NULL);
+  if ($page_title != NULL && $page_title != '') {
+    $site_name = $page_title;
+  }
+  else {
+    $site_name = variable_get('site_name', 'Drupal') . 'Planet';
+  }
+  return $site_name;
+}
+
+/**
  * Page Content
  */
 function udplanet_page_content() {
   drupal_set_title(variable_get('udplanet_page_title', NULL));
   drupal_add_css(drupal_get_path('module', 'udplanet') . '/udplanet-style.css');
-  drupal_add_feed('planet/rss');
+  drupal_add_feed(url('planet/rss'), udplanet_page_title());
 
   $feeds = udplanet_get_items();
 
@@ -42,13 +57,7 @@ function udplanet_page_rss() {
 
   $url = url('planet/rss', array('absolute' => TRUE));
 
-  $page_title = variable_get('udplanet_page_title', NULL);
-  if ($page_title != NULL && $page_title != '') {
-    $site_name = $page_title;
-  }
-  else {
-    $site_name = variable_get('site_name', 'Drupal') . 'Planet';
-  }
+  $site_name = udplanet_page_title();
 
   $page_desc = variable_get('udplanet_page_desc', NULL);
   if ($page_desc != NULL && $page_desc != '') {
@@ -139,6 +148,8 @@ function udplanet_content_heading($time, &$day_last) {
  * This is somewhat cluttered and ugly but does what it's supposed to.
  */
 function udplanet_block_content() {
+  drupal_add_css(drupal_get_path('module', 'udplanet') . '/udplanet-style.css');
+
   $feeds = db_query('SELECT title, url, link FROM {aggregator_feed} ORDER BY title');
 
   $block_content = '<div id="udp-rightColumn">';
