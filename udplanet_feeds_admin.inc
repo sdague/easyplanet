@@ -28,29 +28,31 @@ function udplanet_feeds_admin() {
  * Build table of feeds
  */
 function udplanet_feeds_admin_list() {
-  // Get list of available users
-  $users_array = db_query('SELECT uid, name FROM {users} WHERE uid > 0');
-  while ($user_array = db_fetch_object($users_array)) {
-    $users[$user_array->uid] = $user_array->name;
-  }
+  $query = db_select('udplanet_feeds', 'uf');
+  $query->join('aggregator_feed', 'af', 'uf.fid=af.fid');
+  $query->join('users', 'u', 'uf.uid=u.uid');
 
-  $feeds = db_query('SELECT * FROM {udplanet_feeds} ORDER BY uid');
+  $feeds = $query->fields('uf')
+    ->fields('af', array('title'))
+    ->fields('u', array('name'))
+    ->orderBy('uf.uid', 'DESC')
+    ->execute();
 
   $rows = array();
 
   $headers = array('User', 'Feed Title', 'Disabled', 'Frozen', 'Edit');
 
-  while ($feed = db_fetch_object($feeds)) {
+  foreach ($feeds as $feed) {
     $lid = strval($feed->lid);
-    $username = $users[$feed->uid];
+    $username = $feed->name;
     $disabled = ($feed->disabled == TRUE) ? 'X' : '';
     $frozen = ($feed->frozen == TRUE) ? 'X' : '';
-    $edit = l(t('edit'), 'admin/settings/udplanet/feeds/'. $lid);
-    $aggregator = db_fetch_object(db_query_range('SELECT title FROM {aggregator_feed} WHERE fid="%d"', array($feed->fid), 0, 1));
-    array_push($rows, array($username, $aggregator->title, $disabled, $frozen, $edit));
+    $edit = l(t('edit'), 'admin/config/system/udplanet/feeds/'. $lid);
+    $title = $feed->title;
+    array_push($rows, array($username, $title, $disabled, $frozen, $edit));
   }
 
-  return theme('table', $headers, $rows);
+  return theme('table', array('header' => $headers, 'rows' => $rows));
 }
 
 /**

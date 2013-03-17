@@ -23,7 +23,7 @@ function udplanet_admin_settings() {
   //
   $options = array (0 => 'No category');
   $query = db_select('aggregator_category', 'ac');
-  $results = $query->fields('ac', array('cid', 'title'));
+  $results = $query->fields('ac', array('cid', 'title'))->execute();
   foreach ($results as $obj) {
     $options[$obj->cid] = $obj->title;
   }
