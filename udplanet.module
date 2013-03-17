@@ -3,7 +3,7 @@
 /**
  * Implementation of hook_perm().
  */
-function udplanet_perm() {
+function udplanet_permission() {
   return array('administer udplanet', 'administer own feeds', 'view udplanet');
 }
 
@@ -54,7 +54,7 @@ function udplanet_help($path, $arg) {
 function udplanet_menu() {
   $items = array();
 
-  $items['admin/settings/udplanet'] = array(
+  $items['admin/config/system/udplanet'] = array(
     'title' => 'UD Planet Settings',
     'description' => 'Set the various options for the UD Planet module.',
     'weight' => '0',
@@ -64,7 +64,7 @@ function udplanet_menu() {
     'file' => 'udplanet_settings.inc',
     'type' => MENU_NORMAL_ITEM,
   );
-  $items['admin/settings/udplanet/settings'] = array(
+  $items['admin/config/system/udplanet/settings'] = array(
     'title' => 'Settings',
     'description' => 'Set the various options for the Ubuntu Release Countdown module.',
     'weight' => '0',
@@ -74,7 +74,7 @@ function udplanet_menu() {
     'file' => 'udplanet_settings.inc',
     'type' => MENU_DEFAULT_LOCAL_TASK,
   );
-  $items['admin/settings/udplanet/feeds'] = array(
+  $items['admin/config/system/udplanet/feeds'] = array(
     'title' => 'User Feeds',
     'description' => 'Configure feeds for all users.',
     'weight' => '1',
@@ -94,14 +94,14 @@ function udplanet_menu() {
     'type' => MENU_LOCAL_TASK,
   );
   $items['planet'] = array(
-    'title' => NULL,
+    'title' => 'Planet',
     'page callback' => 'udplanet_page_content',
     'access arguments' => array('view udplanet'),
     'file' => 'udplanet_content.inc',
     'type' => MENU_CALLBACK,
   );
   $items['planet/rss'] = array(
-    'title' => NULL,
+    'title' => 'Planet RSS',
     'page callback' => 'udplanet_page_rss',
     'access arguments' => array('view udplanet'),
     'file' => 'udplanet_content.inc',
@@ -206,7 +206,7 @@ function udplanet_check_limit($uid, $op) {
  * Implementation of hook_menu_alter().
  * This function alters the aggregator module for because the module relies on the settings here very heavily.
  */
-function udplanet_menu_alter(&$callbacks) {
+/* function udplanet_menu_alter(&$callbacks) {
   if (variable_get('udplanet_safety_enabled', TRUE)) {
     // Not catching everything | If they are this determined, they can break things in the database
     $callbacks['admin/content/aggregator']['title'] = NULL;
@@ -217,6 +217,7 @@ function udplanet_menu_alter(&$callbacks) {
     $callbacks['aggregator'] = NULL;
   }
 }
+*/
 
 /**
  * This function explains why they can not access the altered menus
@@ -226,7 +227,7 @@ function udplanet_aggregator_override() {
   return t('<h2>Access Disabled</h2>'
          . '<p>You are not allowed to access the Aggregator module directly. The UD Planet module is enabled and is VERY tightly reliant on the Aggregator '
          . 'module and it\'s tables. Altering the Aggregator module could cause catastrophic issues for both the Planet and Aggregator modules.<p>'
-         . '<p>If you need to manage the UD Planet, you should go to !link.</p>', array('!link' => l(t('admin/settings/udplanet'), 'admin/settings/udplanet')));
+         . '<p>If you need to manage the UD Planet, you should go to !link.</p>', array('!link' => l(t('admin/config/system/udplanet'), 'admin/config/system/udplanet')));
 }
 
 /**
@@ -295,4 +296,3 @@ function udplanet_theme() {
     ),
   );
 }
-

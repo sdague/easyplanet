@@ -1,6 +1,6 @@
 name = UD Planet
 description = Mimics PlanetPlanet whish hosts planet.ubuntu.com.
-core = 6.x
+core = 7.x
 project = udplanet
 package = Ubuntu Drupal
 

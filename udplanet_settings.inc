@@ -22,9 +22,10 @@ function udplanet_admin_settings() {
   // Fetch a list of categories.
   //
   $options = array (0 => 'No category');
-  $result = db_query('SELECT cid, title FROM {aggregator_category}');
-  while ($row = db_fetch_array($result)) {
-    $options[$row['cid']] = $row['title'];
+  $query = db_select('aggregator_category', 'ac');
+  $results = $query->fields('ac', array('cid', 'title'));
+  foreach ($results as $obj) {
+    $options[$obj->cid] = $obj->title;
   }
 
   $form['general']['udplanet_feed_category'] = array(
@@ -148,4 +149,3 @@ function udplanet_admin_settings() {
 
   return system_settings_form($form);
 }
-
