@@ -8,20 +8,24 @@
 /**
  * Manage Planet Feeds
  */
-function udplanet_feeds_admin() {
-  $lid = intval(arg(4));
-
+function udplanet_feeds_admin($lid) {
   if (intval($lid) > 0) {
-    $edit = db_fetch_array(db_query('SELECT * FROM {udplanet_feeds} WHERE lid = %d', intval($lid)));
-    $output .= drupal_get_form('udplanet_feeds_admin_edit', $edit, TRUE);
+    $edit = db_select('udplanet_feeds', 'uf')
+      ->fields('uf')
+      ->condition('lid', $lid)
+      ->execute()->fetch();
+    $form = drupal_get_form('udplanet_feeds_admin_edit', $edit, TRUE);
   }
   else {
-    $output .= drupal_get_form('udplanet_feeds_admin_edit', $edit, FALSE);
-    $output .= '<h2>User Feeds</h2>';
-    $output .= udplanet_feeds_admin_list();
+    $form = drupal_get_form('udplanet_feeds_admin_edit', $edit, FALSE);
+    $form['title'] = array(
+                           '#markup' => '<h2>User Feeds</h2>'
+                           );
+    $form['feed_list'] = array(
+                               '#markup' => udplanet_feeds_admin_list()
+                               );
   }
-
-  return $output;
+  return $form;
 }
 
 /**
@@ -58,15 +62,22 @@ function udplanet_feeds_admin_list() {
 /**
  * Add/Delete/Update Feeds
  */
-function udplanet_feeds_admin_edit(&$form_state, $edit = array(), $individual = FALSE) {
+function udplanet_feeds_admin_edit($form, &$form_state, $edit, $individual = FALSE) {
+  if (!$edit) {
+    $edit = (object)array();
+  }
   if ($individual) {
-    $user = db_fetch_object(db_query('SELECT name
-                                      FROM {udplanet_feeds}
-                                      LEFT JOIN {users} ON udplanet_feeds.uid = users.uid
-                                      WHERE lid = "%s"', $edit['lid']));
+    $query = db_select('users', 'u');
+    $query->join('udplanet_feeds', 'uf', 'uf.uid=u.uid');
+    $user = $query->fields('u', array('name'))
+      ->condition('lid', $edit->lid)
+      ->execute()->fetch();
     $username = $user->name;
   }
-  $aggregator = db_fetch_object(db_query('SELECT title, url FROM {aggregator_feed} WHERE fid="%d"', array($edit['fid']), 0, 1));
+  $aggregator = db_select('aggregator_feed', 'af')
+    ->fields('af', array('title', 'url'))
+    ->condition('fid', $edit->fid)
+    ->execute()->fetch();
   $feed_title = $aggregator->title;
   $feed_url = $aggregator->url;
 
@@ -74,14 +85,14 @@ function udplanet_feeds_admin_edit(&$form_state, $edit = array(), $individual = 
 
   $form['feed'] = array(
     '#type' => 'fieldset',
-    '#title' => t('Feed'),
+    '#title' => t('Add New Feed'),
     '#collapsible' => TRUE,
     '#collapsed' => !$individual,
     '#tree' => FALSE,
   );
   $form['feed']['lid'] = array(
     '#type' => 'hidden',
-    '#value' => $edit['lid'],
+    '#value' => $edit->lid,
   );
   $form['feed']['username'] = array(
     '#type' => 'textfield',
@@ -106,13 +117,13 @@ function udplanet_feeds_admin_edit(&$form_state, $edit = array(), $individual = 
   $form['feed']['disabled'] = array(
     '#type' => 'checkbox',
     '#title' => t('Disabled'),
-    '#default_value' => $edit['disabled'],
+    '#default_value' => $edit->disabled,
     '#description' => t('Whether or not the blog will be aggregated. (unchecke overrides frozen)'),
   );
   $form['feed']['frozen'] = array(
     '#type' => 'checkbox',
     '#title' => t('Frozen'),
-    '#default_value' => $edit['frozen'],
+    '#default_value' => $edit->frozen,
     '#description' => t('Whether or not the blog will be aggregated. (unchecked overrides enabled) -- User can not modify this'),
   );
 
@@ -121,7 +132,7 @@ function udplanet_feeds_admin_edit(&$form_state, $edit = array(), $individual = 
     '#value' => $individual ? 'Update' : 'Add'
   );
 
-  if ($edit['lid'] > 0) {
+  if ($edit->lid > 0) {
     $form['feed']['delete'] = array(
       '#type' => 'submit',
       '#value' => 'Delete',
