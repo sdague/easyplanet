@@ -81,6 +81,8 @@ function udplanet_page_rss() {
   $output .= format_rss_channel(t('@site_name', array('@site_name' => $site_name)), $url, $description, $items);
   $output .= "</rss>\n";
 
+  drupal_add_http_header('Content-type', 'text/xml');
+
   print $output;
 }
 
