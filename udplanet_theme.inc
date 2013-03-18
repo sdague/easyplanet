@@ -8,30 +8,32 @@
 /**
  * Custom theme function: page output
  */
-function theme_page_udplanet($title, $url, $heading, $link, $content, $time, $uid) {
-  $timestamp = format_date($time, 'custom', 'F d, Y g:i A');
-  $picture = theme('user_picture', user_load($uid));
+function theme_page_udplanet($vars) {
+  error_log("Vars: $vars");
+  // $title, $url, $heading, $link, $content, $time, $uid) {
+  $timestamp = format_date($vars['time'], 'custom', 'F d, Y g:i A');
+  $picture = theme('user_picture', array('account' => user_load($vars['uid'])));
 
   $output  = '<div class="udp-entry">';
   $output .= '  <div class="udp-person-info">';
-  $output .= '    <a href="' . $url . '">';
+  $output .= '    <a href="' . $vars['url'] . '">';
   $output .= '      ' . $picture;
-  $output .= '      <br />' . $title;
+  $output .= '      <br />' . $vars['title'];
   $output .= '    </a>';
   $output .= '  </div>';
   $output .= '  <div class="udp-post">';
   $output .= '    <div class="udp-post2">';
   $output .= '      <div class="udp-post-header">';
   $output .= '        <h4 class="udp-post-title">';
-  $output .= '          <a href="' . $link . '">' . $heading . '</a>';
+  $output .= '          <a href="' . $vars['link'] . '">' . $vars['heading'] . '</a>';
   $output .= '        </h4>';
   $output .= '      </div>';
   $output .= '      <div class="udp-post-contents">';
-  $output .= '        ' . $content;
+  $output .= '        ' . $vars['content'];
   $output .= '      </div>';
   $output .= '      <div class="udp-post-footer">';
   $output .= '        <p>';
-  $output .= '          <a href="' . $link . '">' . $timestamp . '</a>';
+  $output .= '          <a href="' . $vars['link'] . '">' . $timestamp . '</a>';
   $output .= '        </p>';
   $output .= '      </div>';
   $output .= '    </div>';
@@ -67,7 +69,7 @@ function theme_sidebar_udplanet_feeds_open() {
  */
 function theme_sidebar_udplanet_feeds_list($title, $feed, $link) {
   $output  = '    <li>';
-  $output .= '      <a href="' . $link . '">' . $title . '</a> <a href="' . $feed . '"> (feed)</a>';
+  $output .= '      <a href="' . $vars['link'] . '">' . $title . '</a> <a href="' . $feed . '"> (feed)</a>';
   $output .= '    </li>';
 
   return $output;
@@ -82,4 +84,3 @@ function theme_sidebar_udplanet_feeds_close() {
 
   return $output;
 }
-
