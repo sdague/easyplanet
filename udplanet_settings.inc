@@ -115,7 +115,7 @@ function udplanet_admin_settings() {
   );
   $form['safety']['notice_3'] = array(
     '#type' => 'textarea',
-    '#title' => l(t('Click here to be navigated to /admin/user/settings'), 'admin/user/settings'),
+    '#title' => l(t('Click here to be navigated to /admin/people'), 'admin/people'),
     '#default_value' => t('The Planet module relies very heavily on the Aggregator module. For this reason, '
                         . 'the default action is to disable access to the aggregator settings. If you need '
                         . 'to access these settings you can disable this safety setting. However, do not  '
@@ -139,7 +139,7 @@ function udplanet_admin_settings() {
   );
   $form['pictures']['notice_2'] = array(
     '#type' => 'textarea',
-    '#title' => l(t('Click here to be navigated to /admin/user/settings'), 'admin/user/settings'),
+    '#title' => l(t('Click here to be navigated to /admin/people'), 'admin/people'),
     '#default_value' => t('Managing user pictures is not implimented here for various reasons. You should visit '
                         . 'yoursite.com/admin/user/settings and scroll down to the "Pictures" section to manage '
                         . 'pictures that will be diplayed with the user blogs. It is suggested that you configure '

@@ -4,7 +4,19 @@
  * Implementation of hook_perm().
  */
 function udplanet_permission() {
-  return array('administer udplanet', 'administer own feeds', 'view udplanet');
+  return array(
+    'administer udplanet' => array(
+      'title' => t('Administer Planet'),
+      'description' => t("Make changes to the planet globally"),
+    ),
+    'administer own feeds' => array(
+      'title' => t('Administer Own Feeds'),
+      'description' => t("Make changes your own feeds in the planet"),
+    ),
+    'view udplanet' => array(
+      'title' => t('View Planet'),
+      'description' => t("See the planet content")
+    ));
 }
 
 /**
