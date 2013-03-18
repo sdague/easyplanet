@@ -82,7 +82,7 @@ function udplanet_feeds_user_edit($form, &$form_state, $edit, $user) {
   if (!variable_get('udplanet_user_edit', TRUE) && !variable_get('udplanet_user_add', TRUE)) return NULL;
 
   $aggregator = db_select('aggregator_feed', 'af')->fields('af', array('title', 'url'))
-    ->condition('fid', $edit->fid)->execute();
+    ->condition('fid', $edit->fid)->execute()->fetch();
   // $aggregator = db_fetch_object(db_query_range('SELECT title, url FROM {aggregator_feed} WHERE fid="%d"', array($edit['fid']), 0, 1));
   $feed_title = $aggregator->title;
   $feed_url = $aggregator->url;
