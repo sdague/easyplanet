@@ -39,7 +39,7 @@ function udplanet_feeds_user_list($userid) {
   $query = db_select('udplanet_feeds', 'uf');
   $query->join('aggregator_feed', 'af', 'af.fid=uf.fid');
 
-  $feeds = db_select('udplanet_feeds', 'uf')
+  $feeds = $query
     ->fields('uf')
     ->fields('af', array('title'))
     ->condition('uid', $userid)
@@ -67,7 +67,7 @@ function udplanet_feeds_user_list($userid) {
     }
   }
 
-  return theme('table', $headers, $rows);
+  return theme('table', array('header' => $headers, 'rows' => $rows));
 }
 
 /**

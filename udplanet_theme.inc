@@ -12,7 +12,7 @@ function theme_page_udplanet($vars) {
   error_log("Vars: $vars");
   // $title, $url, $heading, $link, $content, $time, $uid) {
   $timestamp = format_date($vars['time'], 'custom', 'F d, Y g:i A');
-  $picture = theme('user_picture', array('account' => user_load($vars['uid'])));
+  $picture = theme('user_picture', array('' => user_load($vars['uid'])));
 
   $output  = '<div class="udp-entry">';
   $output .= '  <div class="udp-person-info">';
@@ -46,9 +46,9 @@ function theme_page_udplanet($vars) {
 /**
  * Custom theme function: date heading
  */
-function theme_heading_udplanet($date) {
+function theme_heading_udplanet($vars) {
   $output  = '<h2 class="udp-date">';
-  $output .=   $date;
+  $output .=   $vars['date'];
   $output .= '</h2>';
 
   return $output;
@@ -67,9 +67,9 @@ function theme_sidebar_udplanet_feeds_open() {
 /**
  * Custom theme function: block feeds
  */
-function theme_sidebar_udplanet_feeds_list($title, $feed, $link) {
+function theme_sidebar_udplanet_feeds_list($vars) {
   $output  = '    <li>';
-  $output .= '      <a href="' . $vars['link'] . '">' . $title . '</a> <a href="' . $feed . '"> (feed)</a>';
+  $output .= '      <a href="' . $vars['link'] . '">' . $vars['title'] . '</a> <a href="' . $vars['feed'] . '"> (feed)</a>';
   $output .= '    </li>';
 
   return $output;

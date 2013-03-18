@@ -248,24 +248,35 @@ function udplanet_aggregator_override() {
 }
 
 /**
- * Implementation of hook_user().
+ * Implementation of hook_user_delete().
  * This function implements hooks to ensure that user alterations do not affect the feeds
  */
-function udplanet_user($op, &$edit, &$account, $category = NULL) {
-  switch ($op) {
-    case 'delete':
-      $fids = db_query('SELECT udplanet_feeds.fid AS fid FROM {udplanet_feeds} WHERE udplanet_feeds.uid = "%s"', $account->uid);
-      while ($fid = db_fetch_array($fids)) {
-        db_query('DELETE FROM {udplanet_feeds} WHERE uid=%d', $account->uid);
-        db_query('DELETE FROM {aggregator_item} WHERE fid=%d', $fid);
-        db_query('DELETE FROM {aggregator_feed} WHERE fid=%d', $fid);
-      }
-      break;
-    case 'update':
-      db_query('UPDATE {udplanet_feeds} SET frozen="%s" WHERE uid="%s"', !$edit['status'], $account->uid);
-      break;
+function udplanet_user_delete($account) {
+  $fids = db_select('udplanet_feeds', 'uf')
+    ->field('uf', array('fid'))
+    ->condition('uid', $account->uid)
+    ->execute();
+  foreach ($fids as $fid) {
+    db_delete('aggregator_feed')->condition('fid', $fid)->execute();
+    db_delete('aggregator_item')->condition('fid', $fid)->execute();
   }
+  db_delete('udplanet_feeds')->condition('uid', $account->uid)->execute();
 }
+/* function udplanet_user($op, &$edit, &$account, $category = NULL) { */
+/*   switch ($op) { */
+/*     case 'delete': */
+/*       $fids = db_query('SELECT udplanet_feeds.fid AS fid FROM {udplanet_feeds} WHERE udplanet_feeds.uid = "%s"', $account->uid); */
+/*       while ($fid = db_fetch_array($fids)) { */
+/*         db_query('DELETE FROM {udplanet_feeds} WHERE uid=%d', $account->uid); */
+/*         db_query('DELETE FROM {aggregator_item} WHERE fid=%d', $fid); */
+/*         db_query('DELETE FROM {aggregator_feed} WHERE fid=%d', $fid); */
+/*       } */
+/*       break; */
+/*     case 'update': */
+/*       db_query('UPDATE {udplanet_feeds} SET frozen="%s" WHERE uid="%s"', !$edit['status'], $account->uid); */
+/*       break; */
+/*   } */
+/* } */
 
 /**
  * Implementation of hook_theme().
@@ -294,7 +305,7 @@ function udplanet_theme() {
     ),
     // Theme block feeds open
     'sidebar_udplanet_feeds_open' => array(
-      'arguments' => array(),
+      'arguements' => array(),
       'file' => 'udplanet_theme.inc',
     ),
     // Theme block feeds list
@@ -308,7 +319,7 @@ function udplanet_theme() {
     ),
     // Theme block feeds close
     'sidebar_udplanet_feeds_close' => array(
-      'arguments' => array(),
+      'arguements' => array(),
       'file' => 'udplanet_theme.inc',
     ),
   );
