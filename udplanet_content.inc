@@ -26,7 +26,7 @@ function udplanet_page_title()
 function udplanet_page_content() {
   drupal_set_title(variable_get('udplanet_page_title', NULL));
   drupal_add_css(drupal_get_path('module', 'udplanet') . '/udplanet-style.css');
-  drupal_add_feed(url('planet/rss'), udplanet_page_title());
+  drupal_add_feed(url('planet/rss', array('absolute' => TRUE)), udplanet_page_title());
 
   $feeds = udplanet_get_items();
 
