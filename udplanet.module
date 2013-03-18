@@ -100,7 +100,7 @@ function udplanet_menu() {
     'title' => 'Planet Feeds',
     'description' => 'Configure feeds for logged in user under My Account',
     'page callback' => 'udplanet_feeds_user',
-    'page arguments' => array(1),
+    'page arguments' => array(1, 4),
     'access arguments' => array('administer own feeds'),
     'file' => 'udplanet_feeds_user.inc',
     'type' => MENU_LOCAL_TASK,

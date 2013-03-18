@@ -8,16 +8,19 @@
 /**
  * Manage Planet Feeds
  */
-function udplanet_feeds_user($userid) {
+function udplanet_feeds_user($userid, $lid) {
   if ($userid == NULL) {
     global $user;
     $userid = $user->uid;
   }
 
-  $lid = intval(arg(4));
-
   if (intval($lid) > 0) {
-    $edit = db_fetch_array(db_query('SELECT * FROM {udplanet_feeds} WHERE lid = %d AND uid="%s"', intval($lid), $userid));
+    $edit = db_select('udplanet_feeds', 'uf')
+      ->fields('uf')
+      ->condition('uid', $userid)
+      ->condition('lid', $lid)
+      ->execute()
+      ->fetch();
     $output .= drupal_get_form('udplanet_feeds_user_edit', $edit, 'true', $userid);
   }
   else {
@@ -33,7 +36,14 @@ function udplanet_feeds_user($userid) {
  * Build table of feeds
  */
 function udplanet_feeds_user_list($userid) {
-  $feeds = db_query('SELECT * FROM {udplanet_feeds} WHERE uid="%s" ORDER BY uid', $userid);
+  $query = db_select('udplanet_feeds', 'uf');
+  $query->join('aggregator_feed', 'af', 'af.fid=uf.fid');
+
+  $feeds = db_select('udplanet_feeds', 'uf')
+    ->fields('uf')
+    ->fields('af', array('title'))
+    ->condition('uid', $userid)
+    ->execute();
 
   $rows = array();
 
@@ -44,17 +54,16 @@ function udplanet_feeds_user_list($userid) {
     $headers = array('Feed Title', 'Disabled', 'Frozen');
   }
 
-  while ($feed = db_fetch_object($feeds)) {
+  foreach ($feeds as $feed) {
     $lid = strval($feed->lid);
     $disabled = ($feed->disabled == TRUE) ? 'X' : '';
     $frozen = ($feed->frozen == TRUE) ? 'X' : '';
     $edit = l(t('edit'), 'user/' . $userid . '/udplanet/feeds/'. $lid);
-    $aggregator = db_fetch_object(db_query_range('SELECT title FROM {aggregator_feed} WHERE fid="%d"', array($feed->fid), 0, 1));
     if (variable_get('udplanet_user_edit', TRUE)) {
-      array_push($rows, array($aggregator->title, $disabled, $frozen, $edit));
+      array_push($rows, array($feed->title, $disabled, $frozen, $edit));
     }
     else {
-      array_push($rows, array($aggregator->title, $disabled, $frozen));
+      array_push($rows, array($feed->title, $disabled, $frozen));
     }
   }
 
