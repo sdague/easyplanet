@@ -8,7 +8,7 @@
 /**
  * Manage Planet Feeds
  */
-function udplanet_feeds_user($userid, $lid) {
+function udplanet_feeds_user($userid, $lid=NULL) {
   if ($userid == NULL) {
     global $user;
     $userid = $user->uid;
@@ -21,15 +21,19 @@ function udplanet_feeds_user($userid, $lid) {
       ->condition('lid', $lid)
       ->execute()
       ->fetch();
-    $output .= drupal_get_form('udplanet_feeds_user_edit', $edit, 'true', $userid);
+    $form = drupal_get_form('udplanet_feeds_user_edit', $edit, $userid);
   }
   else {
-    $output .= drupal_get_form('udplanet_feeds_user_edit', $edit, 'false', $userid);
-    $output .= '<h2>User Feeds</h2>';
-    $output .= udplanet_feeds_user_list($userid);
+    $form = drupal_get_form('udplanet_feeds_user_edit', (object)array(), $userid);
+    $form['title'] = array(
+                           '#markup' => '<h2>User Feeds</h2>',
+                           );
+    $form['feed_list'] = array(
+                               '#markup' => udplanet_feeds_user_list($userid)
+                               );
   }
 
-  return $output;
+  return $form;
 }
 
 /**
@@ -73,11 +77,13 @@ function udplanet_feeds_user_list($userid) {
 /**
  * Add/Delete/Update Feeds
  */
-function udplanet_feeds_user_edit(&$form_state, $edit = array(), $individual = FALSE) {
+function udplanet_feeds_user_edit($form, &$form_state, $edit, $user) {
   // Check permissions from Settings
   if (!variable_get('udplanet_user_edit', TRUE) && !variable_get('udplanet_user_add', TRUE)) return NULL;
 
-  $aggregator = db_fetch_object(db_query_range('SELECT title, url FROM {aggregator_feed} WHERE fid="%d"', array($edit['fid']), 0, 1));
+  $aggregator = db_select('aggregator_feed', 'af')->fields('af', array('title', 'url'))
+    ->condition('fid', $edit->fid)->execute();
+  // $aggregator = db_fetch_object(db_query_range('SELECT title, url FROM {aggregator_feed} WHERE fid="%d"', array($edit['fid']), 0, 1));
   $feed_title = $aggregator->title;
   $feed_url = $aggregator->url;
 
@@ -87,12 +93,12 @@ function udplanet_feeds_user_edit(&$form_state, $edit = array(), $individual = F
     '#type' => 'fieldset',
     '#title' => t('Feed'),
     '#collapsible' => TRUE,
-    '#collapsed' => $edit['lid'] > 0 ? FALSE : TRUE,
+    '#collapsed' => ($edit->lid > 0) ? FALSE : TRUE,
     '#tree' => FALSE,
   );
   $form['feed']['lid'] = array(
     '#type' => 'hidden',
-    '#value' => $edit['lid'],
+    '#value' => $edit->lid,
   );
   $form['feed']['feed_title'] = array(
     '#type' => 'textfield',
@@ -109,24 +115,24 @@ function udplanet_feeds_user_edit(&$form_state, $edit = array(), $individual = F
   $form['feed']['disabled'] = array(
     '#type' => 'checkbox',
     '#title' => t('Disabled'),
-    '#default_value' => $edit['disabled'],
+    '#default_value' => $edit->disabled,
     '#description' => t('Whether or not the blog will be aggregated. (unchecke overrides frozen)'),
   );
 
-  if (variable_get('udplanet_user_add', TRUE) && $edit['lid'] == 0) {
+  if (variable_get('udplanet_user_add', TRUE) && $edit->lid == 0) {
     $form['feed']['submit'] = array(
       '#type' => 'submit',
       '#value' => 'Add',
     );
   }
-  elseif (variable_get('udplanet_user_edit', TRUE) && $edit['lid'] > 0) {
+  elseif (variable_get('udplanet_user_edit', TRUE) && $edit->lid > 0) {
     $form['feed']['submit'] = array(
       '#type' => 'submit',
       '#value' => 'Update',
     );
   }
 
-  if (variable_get('udplanet_user_edit', TRUE) && $edit['lid'] > 0) {
+  if (variable_get('udplanet_user_edit', TRUE) && $edit->lid > 0) {
     $form['feed']['delete'] = array(
       '#type' => 'submit',
       '#value' => 'Delete',
