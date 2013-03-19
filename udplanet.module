@@ -124,16 +124,26 @@ function udplanet_menu() {
 }
 
 /**
- * Implementation of hook_block().
+ * Implementation of hook_block_info().
  */
-function udplanet_block($op = 'list', $delta = 0, $edit = array()) {
+function udplanet_block_info() {
+  $blocks['feed_list'] = array(
+    'info' => t('Planet Feeds'),
+    'cache' => DRUPAL_NO_CACHE,
+  );
+  return $blocks;
+}
+
+/**
+ * Implementation of hook_block_view().
+ */
+function udplanet_block_view($delta) {
   module_load_include('inc', 'udplanet', 'udplanet_content');
-  if ($op == "list") {
-    $block[0]["info"] = t('Planet Sidebar');
-  }
-  elseif ($op == 'view') {
-    $block['subject'] = 'Solar System';
-    $block['content'] = udplanet_block_content();
+  switch ($delta) {
+    case 'feed_list':
+      $block['subject'] = t('Solar System');
+      $block['content'] = udplanet_block_content();
+      break;
   }
   return $block;
 }
