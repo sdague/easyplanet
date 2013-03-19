@@ -30,11 +30,11 @@ function udplanet_page_content() {
 
   $feeds = udplanet_get_items();
 
+  $planet = '';
+
   foreach ($feeds as $feed) {
     if (isset($feed['content'])) {
-      error_log('pre heading');
       $planet .= udplanet_content_heading($feed['time'], $lastday);
-      error_log('post heading');
       $planet .= theme('page_udplanet',
                        array('title' => $feed['title'],
                              'url' => $feed['url'],
@@ -43,7 +43,6 @@ function udplanet_page_content() {
                              'content' => $feed['content'],
                              'time' => $feed['time'],
                              'uid' => $feed['uid']));
-      error_log('post theme');
     }
   }
 
@@ -169,7 +168,7 @@ function udplanet_block_content() {
     foreach ($feeds as $feed) {
       $block_content .= theme('sidebar_udplanet_feeds_list',
                               array('title' => $feed->title,
-                                    'url' => $feed->url,
+                                    'feed' => $feed->url,
                                     'link' => $feed->link));
     }
     $block_content .= theme('sidebar_udplanet_feeds_close');

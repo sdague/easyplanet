@@ -9,8 +9,6 @@
  * Custom theme function: page output
  */
 function theme_page_udplanet($vars) {
-  error_log("Vars: $vars");
-  // $title, $url, $heading, $link, $content, $time, $uid) {
   $timestamp = format_date($vars['time'], 'custom', 'F d, Y g:i A');
   $picture = theme('user_picture', array('' => user_load($vars['uid'])));
 
