@@ -147,14 +147,19 @@ function udplanet_feeds_user_edit($form, &$form_state, $edit, $user) {
  */
 function udplanet_feeds_user_edit_submit($form, &$form_state) {
   global $user;
-  $form_state['redirect'] = 'user/' . $user->uid . '/udplanet/feeds/';
-  $op  = $form_state['clicked_button']['#post']['op'];
-  $lid = $form_state['clicked_button']['#post']['lid'];
-  $feed_url = $form_state['clicked_button']['#post']['feed_url'];
-  $feed_title = $form_state['clicked_button']['#post']['feed_title'];
-  $uid = $user->uid;
-  $disabled = $form_state['clicked_button']['#post']['disabled'];
-  $feed = db_fetch_object(db_query_range('SELECT fid FROM {udplanet_feeds} WHERE lid="%d" AND uid="%s"', array($lid, $uid), 0, 1));
+  $op  = $form_state['values']['op'];
+  // TODO: refactor for sane objects
+  // TODO: move validation out to validation function
+  // TODO: merge with feeds_admin.inc (frozen is the only missing thing)
+  $lid = $form_state['values']['lid'];
+  $feed_url = $form_state['values']['feed_url'];
+  $feed_title = $form_state['values']['feed_title'];
+  $username = $form_state['values']['username'];
+  $disabled = $form_state['values']['disabled'];
+  $feed = db_select('udplanet_feeds', 'uf')->fields('uf', array('fid'))
+    ->condition('lid', $lid)
+    ->execute()
+    ->fetch();
   $fid = $feed->fid;
 
   // Check Valid URL
@@ -171,36 +176,72 @@ function udplanet_feeds_user_edit_submit($form, &$form_state) {
 
   // Update
   if ($op == 'Update') {
-    db_query('UPDATE {udplanet_feeds} SET uid="%s", disabled="%s" WHERE lid=%d', $uid, $disabled, $lid);
-    db_query('UPDATE {aggregator_feed} SET url="%s", title="%s" WHERE fid=%d', $feed_url, $feed_title, $fid);
+    db_update('udplanet_feeds')
+      ->fields(array(
+                     "uid" => $uid,
+                     "disabled" => $disabled))
+      ->condition('fid', $fid)
+      ->execute();
+
+    db_update('aggregator_feed')
+      ->fields(array(
+                     "url" => $feed_url,
+                     "title" => $feed_title))
+      ->condition('fid', $fid)
+      ->execute();
+
+    drupal_set_message(t("Updated: $feed_title"));
   }
 
   // Delete
   if ($op == 'Delete') {
-    db_query('DELETE FROM {udplanet_feeds} WHERE lid=%d AND uid="%s"', $lid, $uid);
-    db_query('DELETE FROM {aggregator_item} WHERE fid=%d', $fid);
-    db_query('DELETE FROM {aggregator_feed} WHERE fid=%d', $fid);
-    db_query('DELETE FROM {aggregator_category_feed} WHERE fid=%d', $fid);
+    db_delete('udplanet_feeds')->condition('lid', $lid)->execute();
+    db_delete('aggregator_item')->condition('fid', $fid)->execute();
+    db_delete('aggregator_feed')->condition('fid', $fid)->execute();
+    db_delete('aggregator_category_feed')->condition('fid', $fid)->execute();
+    drupal_set_message(t("Deleted: $feed_title"));
   }
 
   // Add
   if ($op == 'Add') {
-    db_query("INSERT INTO {aggregator_feed} (title, url, refresh, block, description, image) VALUES ('%s', '%s', 900, 5, '', '')", $feed_title, $feed_url);
-    $fid = db_last_insert_id('aggregator_feed', 'fid');
+    $fid = db_insert('aggregator_feed')
+      ->fields(array(
+                     'title' => $feed_title,
+                     'url' => $feed_url,
+                     'refresh' => 900,
+                     'block' => 5,
+                     'description' => '',
+                     'image' => ''))
+      ->execute();
     // Assign category, if set.
     if ($cid = variable_get('udplanet_feed_category', 0)) {
-      db_query("INSERT INTO {aggregator_category_feed} (fid, cid)  VALUES (%d, %d)", $fid, $cid);
+      db_insert('aggregator_category_feed')
+        ->fields(array(
+                       'fid' => $fid,
+                       'cid' => $cid))
+        ->execute();
     }
-    db_query('INSERT INTO {udplanet_feeds} (uid, fid, disabled) VALUES ("%s", "%s", "%s")', $uid, $fid, $disabled);
+    db_insert('udplanet_feeds')
+      ->fields(array(
+                     'fid' => $fid,
+                     'uid' => $uid,
+                     'disabled' => $disabled))
+      ->execute();
+    drupal_set_message(t("Added new feed: $feed_title"));
   }
 
   // Pull feed content if option is enabled
   if ($op != 'Delete') {
     if (variable_get('udplanet_cron_edit', 0)) {
       module_load_include('module', 'aggregator', 'aggregator');
-      $feed = db_fetch_array(db_query("SELECT * FROM {aggregator_feed} WHERE fid=%d", $fid));
+      $feed = db_select('aggregator_feed', 'af')
+        ->fields('af')
+        ->condition('fid', $fid)
+        ->execute()
+        ->fetch();
       aggregator_refresh($feed);
     }
   }
 
+  drupal_goto('user/' . $user->uid . '/udplanet/feeds/');
 }
