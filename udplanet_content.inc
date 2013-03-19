@@ -157,14 +157,20 @@ function udplanet_content_heading($time, &$day_last) {
 function udplanet_block_content() {
   drupal_add_css(drupal_get_path('module', 'udplanet') . '/udplanet-style.css');
 
-  $feeds = db_query('SELECT title, url, link FROM {aggregator_feed} ORDER BY title');
+  $feeds = db_select('aggregator_feed', 'af')
+    ->fields('af')
+    ->orderBy('title')
+    ->execute();
 
   $block_content = '<div id="udp-rightColumn">';
 
   if (variable_get('udplanet_block_feeds', TRUE)) {
     $block_content .= theme('sidebar_udplanet_feeds_open');
-    while ($feed = db_fetch_object($feeds)) {
-      $block_content .= theme('sidebar_udplanet_feeds_list', $feed->title, $feed->url, $feed->link);
+    foreach ($feeds as $feed) {
+      $block_content .= theme('sidebar_udplanet_feeds_list',
+                              array('title' => $feed->title,
+                                    'url' => $feed->url,
+                                    'link' => $feed->link));
     }
     $block_content .= theme('sidebar_udplanet_feeds_close');
   }

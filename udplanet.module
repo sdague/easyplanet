@@ -194,7 +194,13 @@ function udplanet_check_limit($uid, $op) {
     return TRUE;
   }
 
-  $feed_count = db_result(db_query('SELECT COUNT(*) FROM {udplanet_feeds} WHERE uid="%s"', $uid));
+  /* error_log("Trying the limit check...."); */
+  /* $feed_count = db_select('udplanet_feeds', 'uf') */
+  /*   ->fields('uf') */
+  /*   ->condition('uid', $uid) */
+  /*   ->countQuery() */
+  /*   ->execute() */
+  /*   ->fetchField(); */
 
   // If the user is under their limit they can add
   if ($op == 'Add') {
@@ -298,19 +304,19 @@ function udplanet_theme() {
     ),
     // Theme block header
     'sidebar_udplanet_header' => array(
-      'arguements' => array(
+      'arguments' => array(
         'header' => NULL,
       ),
       'file' => 'udplanet_theme.inc',
     ),
     // Theme block feeds open
     'sidebar_udplanet_feeds_open' => array(
-      'arguements' => array(),
+      'arguments' => array(),
       'file' => 'udplanet_theme.inc',
     ),
     // Theme block feeds list
     'sidebar_udplanet_feeds_list' => array(
-      'arguements' => array(
+      'arguments' => array(
         'title' => NULL,
         'feed' => NULL,
         'link' => NULL,
@@ -319,7 +325,7 @@ function udplanet_theme() {
     ),
     // Theme block feeds close
     'sidebar_udplanet_feeds_close' => array(
-      'arguements' => array(),
+      'arguments' => array(),
       'file' => 'udplanet_theme.inc',
     ),
   );
