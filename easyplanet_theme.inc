@@ -10,7 +10,8 @@
  */
 function theme_page_easyplanet($vars) {
   $timestamp = format_date($vars['time'], 'custom', 'F d, Y g:i A');
-  $picture = theme('user_picture', array('' => user_load($vars['uid'])));
+  // TODO: the user_load should come up a level
+  $picture = theme('user_picture', array('account' => user_load($vars['uid'])));
 
   $output  = '<div class="udp-entry">';
   $output .= '  <div class="udp-person-info">';
