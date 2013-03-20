@@ -8,7 +8,7 @@
 /**
  * Custom theme function: page output
  */
-function theme_page_udplanet($vars) {
+function theme_page_easyplanet($vars) {
   $timestamp = format_date($vars['time'], 'custom', 'F d, Y g:i A');
   $picture = theme('user_picture', array('' => user_load($vars['uid'])));
 
@@ -44,7 +44,7 @@ function theme_page_udplanet($vars) {
 /**
  * Custom theme function: date heading
  */
-function theme_heading_udplanet($vars) {
+function theme_heading_easyplanet($vars) {
   $output  = '<h2 class="udp-date">';
   $output .=   $vars['date'];
   $output .= '</h2>';
@@ -55,7 +55,7 @@ function theme_heading_udplanet($vars) {
 /**
  * Custom theme function: block feeds
  */
-function theme_sidebar_udplanet_feeds_open() {
+function theme_sidebar_easyplanet_feeds_open() {
   $output  = '<div class="udp-inside">';
   $output .= '  <ul>';
 
@@ -65,7 +65,7 @@ function theme_sidebar_udplanet_feeds_open() {
 /**
  * Custom theme function: block feeds
  */
-function theme_sidebar_udplanet_feeds_list($vars) {
+function theme_sidebar_easyplanet_feeds_list($vars) {
   $output  = '    <li>';
   $output .= '      <a href="' . $vars['link'] . '">' . $vars['title'] . '</a> <a href="' . $vars['feed'] . '"> (feed)</a>';
   $output .= '    </li>';
@@ -76,7 +76,7 @@ function theme_sidebar_udplanet_feeds_list($vars) {
 /**
  * Custom theme function: block feeds
  */
-function theme_sidebar_udplanet_feeds_close() {
+function theme_sidebar_easyplanet_feeds_close() {
   $output  = '  </ul>';
   $output .= '</div>';
 

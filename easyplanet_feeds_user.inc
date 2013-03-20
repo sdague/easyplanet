@@ -2,58 +2,73 @@
 
 /**
  * @file
- * Adminsitrative Menu functions
+ * User Menu functions
  */
 
 /**
  * Manage Planet Feeds
  */
-function udplanet_feeds_admin($lid) {
+function easyplanet_feeds_user($userid, $lid=NULL) {
+  if ($userid == NULL) {
+    global $user;
+    $userid = $user->uid;
+  }
+
   if (intval($lid) > 0) {
-    $edit = db_select('udplanet_feeds', 'uf')
+    $edit = db_select('easyplanet_feeds', 'uf')
       ->fields('uf')
+      ->condition('uid', $userid)
       ->condition('lid', $lid)
-      ->execute()->fetch();
-    $form = drupal_get_form('udplanet_feeds_admin_edit', $edit, TRUE);
+      ->execute()
+      ->fetch();
+    $form = drupal_get_form('easyplanet_feeds_user_edit', $edit, $userid);
   }
   else {
-    $form = drupal_get_form('udplanet_feeds_admin_edit', $edit, FALSE);
+    $form = drupal_get_form('easyplanet_feeds_user_edit', (object)array(), $userid);
     $form['title'] = array(
-                           '#markup' => '<h2>User Feeds</h2>'
+                           '#markup' => '<h2>User Feeds</h2>',
                            );
     $form['feed_list'] = array(
-                               '#markup' => udplanet_feeds_admin_list()
+                               '#markup' => easyplanet_feeds_user_list($userid)
                                );
   }
+
   return $form;
 }
 
 /**
  * Build table of feeds
  */
-function udplanet_feeds_admin_list() {
-  $query = db_select('udplanet_feeds', 'uf');
-  $query->join('aggregator_feed', 'af', 'uf.fid=af.fid');
-  $query->join('users', 'u', 'uf.uid=u.uid');
+function easyplanet_feeds_user_list($userid) {
+  $query = db_select('easyplanet_feeds', 'uf');
+  $query->join('aggregator_feed', 'af', 'af.fid=uf.fid');
 
-  $feeds = $query->fields('uf')
+  $feeds = $query
+    ->fields('uf')
     ->fields('af', array('title'))
-    ->fields('u', array('name'))
-    ->orderBy('uf.uid', 'DESC')
+    ->condition('uid', $userid)
     ->execute();
 
   $rows = array();
 
-  $headers = array('User', 'Feed Title', 'Disabled', 'Frozen', 'Edit');
+  if (variable_get('easyplanet_user_edit', TRUE)) {
+    $headers = array('Feed Title', 'Disabled', 'Frozen', 'Edit');
+  }
+  else {
+    $headers = array('Feed Title', 'Disabled', 'Frozen');
+  }
 
   foreach ($feeds as $feed) {
     $lid = strval($feed->lid);
-    $username = $feed->name;
     $disabled = ($feed->disabled == TRUE) ? 'X' : '';
     $frozen = ($feed->frozen == TRUE) ? 'X' : '';
-    $edit = l(t('edit'), 'admin/config/system/udplanet/feeds/'. $lid);
-    $title = $feed->title;
-    array_push($rows, array($username, $title, $disabled, $frozen, $edit));
+    $edit = l(t('edit'), 'user/' . $userid . '/easyplanet/feeds/'. $lid);
+    if (variable_get('easyplanet_user_edit', TRUE)) {
+      array_push($rows, array($feed->title, $disabled, $frozen, $edit));
+    }
+    else {
+      array_push($rows, array($feed->title, $disabled, $frozen));
+    }
   }
 
   return theme('table', array('header' => $headers, 'rows' => $rows));
@@ -62,22 +77,13 @@ function udplanet_feeds_admin_list() {
 /**
  * Add/Delete/Update Feeds
  */
-function udplanet_feeds_admin_edit($form, &$form_state, $edit, $individual = FALSE) {
-  if (!$edit) {
-    $edit = (object)array();
-  }
-  if ($individual) {
-    $query = db_select('users', 'u');
-    $query->join('udplanet_feeds', 'uf', 'uf.uid=u.uid');
-    $user = $query->fields('u', array('name'))
-      ->condition('lid', $edit->lid)
-      ->execute()->fetch();
-    $username = $user->name;
-  }
-  $aggregator = db_select('aggregator_feed', 'af')
-    ->fields('af', array('title', 'url'))
-    ->condition('fid', $edit->fid)
-    ->execute()->fetch();
+function easyplanet_feeds_user_edit($form, &$form_state, $edit, $user) {
+  // Check permissions from Settings
+  if (!variable_get('easyplanet_user_edit', TRUE) && !variable_get('easyplanet_user_add', TRUE)) return NULL;
+
+  $aggregator = db_select('aggregator_feed', 'af')->fields('af', array('title', 'url'))
+    ->condition('fid', $edit->fid)->execute()->fetch();
+  // $aggregator = db_fetch_object(db_query_range('SELECT title, url FROM {aggregator_feed} WHERE fid="%d"', array($edit['fid']), 0, 1));
   $feed_title = $aggregator->title;
   $feed_url = $aggregator->url;
 
@@ -85,21 +91,14 @@ function udplanet_feeds_admin_edit($form, &$form_state, $edit, $individual = FAL
 
   $form['feed'] = array(
     '#type' => 'fieldset',
-    '#title' => t('Add New Feed'),
+    '#title' => t('Feed'),
     '#collapsible' => TRUE,
-    '#collapsed' => !$individual,
+    '#collapsed' => ($edit->lid > 0) ? FALSE : TRUE,
     '#tree' => FALSE,
   );
   $form['feed']['lid'] = array(
     '#type' => 'hidden',
     '#value' => $edit->lid,
-  );
-  $form['feed']['username'] = array(
-    '#type' => 'textfield',
-    '#title' => t('User'),
-    '#default_value' => $username,
-    '#description' => t('User the blog will belong to.'),
-    '#autocomplete_path' => 'user/autocomplete',
   );
   $form['feed']['feed_title'] = array(
     '#type' => 'textfield',
@@ -111,7 +110,6 @@ function udplanet_feeds_admin_edit($form, &$form_state, $edit, $individual = FAL
     '#type' => 'textfield',
     '#title' => t('Feed URL'),
     '#default_value' => $feed_url,
-    '#maxlength' => 255,
     '#description' => t('The URL of the feed to be aggregated.'),
   );
   $form['feed']['disabled'] = array(
@@ -120,19 +118,21 @@ function udplanet_feeds_admin_edit($form, &$form_state, $edit, $individual = FAL
     '#default_value' => $edit->disabled,
     '#description' => t('Whether or not the blog will be aggregated. (unchecke overrides frozen)'),
   );
-  $form['feed']['frozen'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Frozen'),
-    '#default_value' => $edit->frozen,
-    '#description' => t('Whether or not the blog will be aggregated. (unchecked overrides enabled) -- User can not modify this'),
-  );
 
-  $form['feed']['submit'] = array(
-    '#type' => 'submit',
-    '#value' => $individual ? 'Update' : 'Add'
-  );
+  if (variable_get('easyplanet_user_add', TRUE) && $edit->lid == 0) {
+    $form['feed']['submit'] = array(
+      '#type' => 'submit',
+      '#value' => 'Add',
+    );
+  }
+  elseif (variable_get('easyplanet_user_edit', TRUE) && $edit->lid > 0) {
+    $form['feed']['submit'] = array(
+      '#type' => 'submit',
+      '#value' => 'Update',
+    );
+  }
 
-  if ($edit->lid > 0) {
+  if (variable_get('easyplanet_user_edit', TRUE) && $edit->lid > 0) {
     $form['feed']['delete'] = array(
       '#type' => 'submit',
       '#value' => 'Delete',
@@ -145,34 +145,22 @@ function udplanet_feeds_admin_edit($form, &$form_state, $edit, $individual = FAL
 /**
  * Do the Add/Delete/Update Modification to Feed
  */
-function udplanet_feeds_admin_edit_submit($form, &$form_state, $userid = NULL) {
+function easyplanet_feeds_user_edit_submit($form, &$form_state) {
+  global $user;
   $op  = $form_state['values']['op'];
   // TODO: refactor for sane objects
   // TODO: move validation out to validation function
+  // TODO: merge with feeds_admin.inc (frozen is the only missing thing)
   $lid = $form_state['values']['lid'];
   $feed_url = $form_state['values']['feed_url'];
   $feed_title = $form_state['values']['feed_title'];
   $username = $form_state['values']['username'];
   $disabled = $form_state['values']['disabled'];
-  $frozen = $form_state['values']['frozen'];
-  $feed = db_select('udplanet_feeds', 'uf')->fields('uf', array('fid'))
+  $feed = db_select('easyplanet_feeds', 'uf')->fields('uf', array('fid'))
     ->condition('lid', $lid)
     ->execute()
     ->fetch();
   $fid = $feed->fid;
-
-  // Get uid from  username
-  $user = db_select('users', 'u')
-    ->fields('u', array('uid'))
-    ->condition('name', $username)
-    ->execute()
-    ->fetch();
-
-  $uid = $user->uid;
-  if (!isset($uid)) {
-    form_set_error('user_404', t('Unknown user %username.', array('%username' => $username)));
-    return NULL;
-  }
 
   // Check Valid URL
   if (!valid_url($feed_url, TRUE)) {
@@ -181,18 +169,17 @@ function udplanet_feeds_admin_edit_submit($form, &$form_state, $userid = NULL) {
   }
 
   // Check for duplicates
-  if ($op != 'Delete' && udplanet_check_dupes($feed_url, $feed_title, $fid)) return NULL;
+  if ($op != 'Delete' && easyplanet_check_dupes($feed_url, $feed_title, $fid)) return NULL;
 
   // Check that user hasn't reached max feeds
-  if ($op != 'Delete' && !udplanet_check_limit($uid, $op)) return NULL;
+  if ($op != 'Delete' && !easyplanet_check_limit($uid, $op)) return NULL;
 
   // Update
   if ($op == 'Update') {
-    db_update('udplanet_feeds')
+    db_update('easyplanet_feeds')
       ->fields(array(
                      "uid" => $uid,
-                     "disabled" => $disabled,
-                     "frozen" => $frozen))
+                     "disabled" => $disabled))
       ->condition('fid', $fid)
       ->execute();
 
@@ -208,7 +195,7 @@ function udplanet_feeds_admin_edit_submit($form, &$form_state, $userid = NULL) {
 
   // Delete
   if ($op == 'Delete') {
-    db_delete('udplanet_feeds')->condition('lid', $lid)->execute();
+    db_delete('easyplanet_feeds')->condition('lid', $lid)->execute();
     db_delete('aggregator_item')->condition('fid', $fid)->execute();
     db_delete('aggregator_feed')->condition('fid', $fid)->execute();
     db_delete('aggregator_category_feed')->condition('fid', $fid)->execute();
@@ -227,26 +214,25 @@ function udplanet_feeds_admin_edit_submit($form, &$form_state, $userid = NULL) {
                      'image' => ''))
       ->execute();
     // Assign category, if set.
-    if ($cid = variable_get('udplanet_feed_category', 0)) {
+    if ($cid = variable_get('easyplanet_feed_category', 0)) {
       db_insert('aggregator_category_feed')
         ->fields(array(
                        'fid' => $fid,
                        'cid' => $cid))
         ->execute();
     }
-    db_insert('udplanet_feeds')
+    db_insert('easyplanet_feeds')
       ->fields(array(
                      'fid' => $fid,
                      'uid' => $uid,
-                     'disabled' => $disabled,
-                     'frozen' => $frozen))
+                     'disabled' => $disabled))
       ->execute();
     drupal_set_message(t("Added new feed: $feed_title"));
   }
 
   // Pull feed content if option is enabled
   if ($op != 'Delete') {
-    if (variable_get('udplanet_cron_edit', 0)) {
+    if (variable_get('easyplanet_cron_edit', 0)) {
       module_load_include('module', 'aggregator', 'aggregator');
       $feed = db_select('aggregator_feed', 'af')
         ->fields('af')
@@ -257,5 +243,5 @@ function udplanet_feeds_admin_edit_submit($form, &$form_state, $userid = NULL) {
     }
   }
 
-  drupal_goto("admin/config/system/udplanet/feeds");
+  drupal_goto('user/' . $user->uid . '/easyplanet/feeds/');
 }

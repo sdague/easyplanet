@@ -1,0 +1,6 @@
+name = Easy Planet
+description = Mimics PlanetPlanet functionality for drupal sites
+core = 7.x
+project = easyplanet
+
+dependencies[] = aggregator

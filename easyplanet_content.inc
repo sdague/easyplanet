@@ -8,9 +8,9 @@
 /**
  * Page Title
  */
-function udplanet_page_title()
+function easyplanet_page_title()
 {
-  $page_title = variable_get('udplanet_page_title', NULL);
+  $page_title = variable_get('easyplanet_page_title', NULL);
   if ($page_title != NULL && $page_title != '') {
     $site_name = $page_title;
   }
@@ -23,19 +23,19 @@ function udplanet_page_title()
 /**
  * Page Content
  */
-function udplanet_page_content() {
-  drupal_set_title(variable_get('udplanet_page_title', NULL));
-  drupal_add_css(drupal_get_path('module', 'udplanet') . '/udplanet-style.css');
-  drupal_add_feed(url('planet/rss', array('absolute' => TRUE)), udplanet_page_title());
+function easyplanet_page_content() {
+  drupal_set_title(variable_get('easyplanet_page_title', NULL));
+  drupal_add_css(drupal_get_path('module', 'easyplanet') . '/easyplanet-style.css');
+  drupal_add_feed(url('planet/rss', array('absolute' => TRUE)), easyplanet_page_title());
 
-  $feeds = udplanet_get_items();
+  $feeds = easyplanet_get_items();
 
   $planet = '';
 
   foreach ($feeds as $feed) {
     if (isset($feed['content'])) {
-      $planet .= udplanet_content_heading($feed['time'], $lastday);
-      $planet .= theme('page_udplanet',
+      $planet .= easyplanet_content_heading($feed['time'], $lastday);
+      $planet .= theme('page_easyplanet',
                        array('title' => $feed['title'],
                              'url' => $feed['url'],
                              'heading' => $feed['heading'],
@@ -56,18 +56,18 @@ function udplanet_page_content() {
 /**
  * RSS Content
  */
-function udplanet_page_rss() {
-  $feeds = udplanet_get_items();
+function easyplanet_page_rss() {
+  $feeds = easyplanet_get_items();
 
   foreach ($feeds as $feed) {
-    $items .= udplanet_format_rss_item($feed['heading'], $feed['link'], $feed['content'], $feed['title'], array('pubDate' => date('r', $feed['time'])));
+    $items .= easyplanet_format_rss_item($feed['heading'], $feed['link'], $feed['content'], $feed['title'], array('pubDate' => date('r', $feed['time'])));
   }
 
   $url = url('planet/rss', array('absolute' => TRUE));
 
-  $site_name = udplanet_page_title();
+  $site_name = easyplanet_page_title();
 
-  $page_desc = variable_get('udplanet_page_desc', NULL);
+  $page_desc = variable_get('easyplanet_page_desc', NULL);
   if ($page_desc != NULL && $page_desc != '') {
     $description = $page_desc;
   }
@@ -85,7 +85,7 @@ function udplanet_page_rss() {
   print $output;
 }
 
-function udplanet_format_rss_item($title, $link, $description, $author, $args = array()) {
+function easyplanet_format_rss_item($title, $link, $description, $author, $args = array()) {
   $output = "<item>\n";
   $output .= ' <title>'. check_plain($title) ."</title>\n";
   $output .= ' <link>'. check_url($link) ."</link>\n";
@@ -101,11 +101,11 @@ function udplanet_format_rss_item($title, $link, $description, $author, $args = 
 /**
  * Function to pull the planet data from the database
  */
-function udplanet_get_items() {
-  $items_limit = variable_get('udplanet_feed_items', 40);
+function easyplanet_get_items() {
+  $items_limit = variable_get('easyplanet_feed_items', 40);
 
   $query = db_select('users', 'u');
-  $query->join('udplanet_feeds', 'uf', 'uf.uid=u.uid');
+  $query->join('easyplanet_feeds', 'uf', 'uf.uid=u.uid');
   $query->join('aggregator_feed', 'af', 'af.fid=uf.fid');
   $query->join('aggregator_item', 'ai', 'af.fid=ai.fid');
   $query->range(0, $items_limit);
@@ -138,11 +138,11 @@ function udplanet_get_items() {
 /**
  * Function to manage change in heading
  */
-function udplanet_content_heading($time, &$day_last) {
+function easyplanet_content_heading($time, &$day_last) {
   $day_this = format_date($time, 'custom', 'F d, Y');
   if ($day_last != $day_this) {
     $day_last = $day_this;
-    $output = theme('heading_udplanet', array('day_this' => $day_this));
+    $output = theme('heading_easyplanet', array('day_this' => $day_this));
   }
 
   return $output;
@@ -153,8 +153,8 @@ function udplanet_content_heading($time, &$day_last) {
  *
  * This is somewhat cluttered and ugly but does what it's supposed to.
  */
-function udplanet_block_content() {
-  drupal_add_css(drupal_get_path('module', 'udplanet') . '/udplanet-style.css');
+function easyplanet_block_content() {
+  drupal_add_css(drupal_get_path('module', 'easyplanet') . '/easyplanet-style.css');
 
   $feeds = db_select('aggregator_feed', 'af')
     ->fields('af')
@@ -163,15 +163,15 @@ function udplanet_block_content() {
 
   $block_content = '<div id="udp-rightColumn">';
 
-  if (variable_get('udplanet_block_feeds', TRUE)) {
-    $block_content .= theme('sidebar_udplanet_feeds_open');
+  if (variable_get('easyplanet_block_feeds', TRUE)) {
+    $block_content .= theme('sidebar_easyplanet_feeds_open');
     foreach ($feeds as $feed) {
-      $block_content .= theme('sidebar_udplanet_feeds_list',
+      $block_content .= theme('sidebar_easyplanet_feeds_list',
                               array('title' => $feed->title,
                                     'feed' => $feed->url,
                                     'link' => $feed->link));
     }
-    $block_content .= theme('sidebar_udplanet_feeds_close');
+    $block_content .= theme('sidebar_easyplanet_feeds_close');
   }
 
   $block_content .= '</div>';

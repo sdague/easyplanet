@@ -8,7 +8,7 @@
 /**
  * Planet Settings
  */
-function udplanet_admin_settings() {
+function easyplanet_admin_settings() {
   $form = array();
 
   $form['general'] = array(
@@ -28,39 +28,39 @@ function udplanet_admin_settings() {
     $options[$obj->cid] = $obj->title;
   }
 
-  $form['general']['udplanet_feed_category'] = array(
+  $form['general']['easyplanet_feed_category'] = array(
     '#type' => 'select',
     '#title' => t('Aggregator Category'),
     '#description' => t('The aggregator category to assign to retrieved feed items.'),
     '#options' => $options,
-    '#default_value' => variable_get('udplanet_feed_category', 0)
+    '#default_value' => variable_get('easyplanet_feed_category', 0)
   );
 
-  $form['general']['udplanet_feed_items'] = array(
+  $form['general']['easyplanet_feed_items'] = array(
     '#type' => 'textfield',
     '#title' => t('Feed Items'),
-    '#default_value' => variable_get('udplanet_feed_items', 40),
+    '#default_value' => variable_get('easyplanet_feed_items', 40),
     '#description' => t('The number of items to be displayed in the planet.'),
     '#required' => TRUE,
   );
-  $form['general']['udplanet_cron_edit'] = array(
+  $form['general']['easyplanet_cron_edit'] = array(
     '#type' => 'checkbox',
     '#title' => t('Cron on Modify'),
-    '#default_value' => variable_get('udplanet_cron_edit', 0),
+    '#default_value' => variable_get('easyplanet_cron_edit', 0),
     '#description' => t('Should the feed being added/altered be run through cron to update content? (This does hurt performance)'),
     '#required' => FALSE,
   );
-  $form['general']['udplanet_page_title'] = array(
+  $form['general']['easyplanet_page_title'] = array(
     '#type' => 'textfield',
     '#title' => t('Page Title'),
-    '#default_value' => variable_get('udplanet_page_title', NULL),
+    '#default_value' => variable_get('easyplanet_page_title', NULL),
     '#description' => t('The page title to be displayed with the planet feeds. (blank means disabled)'),
     '#required' => FALSE,
   );
-  $form['general']['udplanet_page_desc'] = array(
+  $form['general']['easyplanet_page_desc'] = array(
     '#type' => 'textfield',
     '#title' => t('Page Description'),
-    '#default_value' => variable_get('udplanet_page_desc', NULL),
+    '#default_value' => variable_get('easyplanet_page_desc', NULL),
     '#description' => t('The description to be displayed under the title. (blank means disabled)'),
     '#required' => FALSE,
   );
@@ -71,10 +71,10 @@ function udplanet_admin_settings() {
     '#collapsed' => TRUE,
     '#tree' => FALSE,
   );
-  $form['sidebar']['udplanet_block_feeds'] = array(
+  $form['sidebar']['easyplanet_block_feeds'] = array(
     '#type' => 'checkbox',
     '#title' => t('Show Feeds'),
-    '#default_value' => variable_get('udplanet_block_feeds', TRUE),
+    '#default_value' => variable_get('easyplanet_block_feeds', TRUE),
     '#description' => t('Whether or not to display a list of user feeds.'),
     '#required' => TRUE,
   );
@@ -85,24 +85,24 @@ function udplanet_admin_settings() {
     '#collapsed' => TRUE,
     '#tree' => FALSE,
   );
-  $form['users']['udplanet_user_max'] = array(
+  $form['users']['easyplanet_user_max'] = array(
     '#type' => 'textfield',
     '#title' => t('Maximum User Feeds'),
-    '#default_value' => variable_get('udplanet_user_max', 0),
+    '#default_value' => variable_get('easyplanet_user_max', 0),
     '#description' => t('The maximum number of feeds a user can have attached to their account. (0 = unlimited)'),
     '#required' => FALSE,
   );
-  $form['users']['udplanet_user_add'] = array(
+  $form['users']['easyplanet_user_add'] = array(
     '#type' => 'checkbox',
     '#title' => t('Add Own Feeds'),
-    '#default_value' => variable_get('udplanet_user_add', TRUE),
+    '#default_value' => variable_get('easyplanet_user_add', TRUE),
     '#description' => t('Allow the user to add their own feeds.'),
     '#required' => TRUE,
   );
-  $form['users']['udplanet_user_edit'] = array(
+  $form['users']['easyplanet_user_edit'] = array(
     '#type' => 'checkbox',
     '#title' => t('Edit Own Feeds'),
-    '#default_value' => variable_get('udplanet_user_edit', TRUE),
+    '#default_value' => variable_get('easyplanet_user_edit', TRUE),
     '#description' => t('Allow the user to edit edit their own feeds.'),
     '#required' => TRUE,
   );
@@ -123,10 +123,10 @@ function udplanet_admin_settings() {
                         . 'change to take effect.'),
     '#disabled' => TRUE,
   );
-  $form['safety']['udplanet_safety_enabled'] = array(
+  $form['safety']['easyplanet_safety_enabled'] = array(
     '#type' => 'checkbox',
     '#title' => t('Enable Safety Features'),
-    '#default_value' => variable_get('udplanet_safety_enabled', TRUE),
+    '#default_value' => variable_get('easyplanet_safety_enabled', TRUE),
     '#description' => t('Enable safety features to prevent issues.'),
     '#required' => TRUE,
   );

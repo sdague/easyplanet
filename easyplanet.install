@@ -5,6 +5,46 @@
  * Install processes for the planet module
  */
 
+
+function easyplanet_migrate_settings() {
+  $names = array('feed_items', 'block_header', 'block_feeds',
+           'block_footer', 'user_max', 'user_add', 'user_edit');
+  foreach ($names as $name) {
+    if (variable_get('udplanet_' . $name)) {
+      variable_set('easyplanet_' . $name, variable_get('udplanet_' . $name));
+      variable_del('udplanet_' . $name);
+    }
+  }
+}
+
+function easyplanet_migrate_db() {
+  try {
+    $rows = db_select('udplanet_feeds', 'uf')->fields('uf')->execute();
+    foreach ($rows as $row) {
+      db_insert('easyplanet_feeds')
+        ->fields(array('lid' => $row->lid,
+            'fid' => $row->fid,
+            'uid' => $row->uid,
+            'disabled' => $row->disabled,
+            'frozen' => $row->frozen))
+        ->execute();
+      db_delete('udplanet_feeds')->condition('lid', $row->lid)->execute();
+    }
+
+  } catch (Exception $e) {
+    watchdog_exception('easyplanet_migrated_db', $e);
+  }
+}
+
+/**
+ * Implementation of hook_install().
+ */
+function easyplanet_install() {
+  // on install, migrate from udplanet if the settings exist
+  easyplanet_migrate_settings();
+  easyplanet_migrate_db();
+}
+
 /**
  * Implementation of hook_uninstall().
  *
@@ -12,8 +52,7 @@
  *
  *
  */
-
-function udplanet_uninstall() {
+function easyplanet_uninstall() {
   // Delete variables
   variable_del('udplanet_feed_items');
   variable_del('udplanet_block_header');
@@ -28,8 +67,8 @@ function udplanet_uninstall() {
  * Implementation of hook_schema().
  */
 
-function udplanet_schema() {
-  $schema['udplanet_feeds'] = array(
+function easyplanet_schema() {
+  $schema['easyplanet_feeds'] = array(
     'description' => t('Table for UD Planet.'),
     'fields' => array(
       'lid' => array(
